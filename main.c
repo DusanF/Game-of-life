@@ -32,17 +32,17 @@ int main(int argc, char *argv[]){
     char univ[h][w];
 
     printf("Generovat nahodne? [Y/n]: ");
-
     scanf("%c", &vstup);
 
-    if (vstup == 'n' || vstup == 'N') {
+	gui_init();
+
+    if (vstup == 'n' || vstup == 'N')
         naplnRucne(univ, w, h);
-    } else {
-        for_xy univ[y][x] = rand() < RAND_MAX / 5 ? 1 : 0;
-    }
+    else
+		naplnNahodne(univ, w, h);
 
 
-	show(univ, w, h);
+	gui_showUniv(univ, w, h);
 
     pthread_t threadKlavesnica;
 	KLAVESA kla;
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]){
 
     pthread_join(threadKlavesnica, NULL);
     pthread_mutex_destroy(&kla.kl_mut);
+    gui_end();
     system("clear");
     return 0;
 }

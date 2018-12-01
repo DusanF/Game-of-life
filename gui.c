@@ -1,14 +1,27 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <ncurses.h>
 #include "defs.h"
+
+void gui_init(){
+	initscr();
+	cbreak();
+	keypad(stdscr, TRUE);
+	noecho();
+	refresh();
+}
+
+void gui_end(){
+	endwin();
+}
 
 void *obsluhaKlavesnice(void *klav_str){
 	KLAVESA *kla = (KLAVESA*) klav_str;
     int znak;
-    system("/bin/stty raw");
     while (1) {
-        znak = getc(stdin);
+        //znak = getc(stdin);
+        znak = getch();
 
 		pthread_mutex_lock(&(kla->kl_mut));
         kla->tlacidlo = znak;
@@ -20,7 +33,6 @@ void *obsluhaKlavesnice(void *klav_str){
             break;
         }
     }
-    system("/bin/stty cooked");
     return NULL;
 }
 
@@ -36,11 +48,24 @@ void naplnRucne(void *u, int w, int h){
     univ[3][2]=1;
 }
 
-void show(void *u, int w, int h){
+void gui_showUniv(void *u, int w, int h){
     char (*univ)[w] = u;
-    printf("\033[H");
     for_y{
-        for_x printf(univ[y][x] ? "\033[07m  \033[m" : "  ");
-        printf("\033[E");}
-    fflush(stdout);
+		move(y, 0);
+		for_x{
+			if(univ[y][x]){
+				//addch(ACS_CKBOARD);
+				//addch(ACS_CKBOARD);
+				//addch(ACS_BLOCK);
+				//addch(ACS_BLOCK);
+				addch(' '|A_REVERSE);
+				addch(' '|A_REVERSE);
+			}else{
+				addch(' ');
+				addch(' ');
+			}
+		}
+	}
+	refresh();
+
 }

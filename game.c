@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include "defs.h"
 #include "gui.h"
@@ -15,6 +16,11 @@ const unsigned dly_tab[] = {
 	10000,
 	5000
 };
+
+void naplnNahodne(void *u, int w, int h){
+    char (*univ)[w] = u;
+    for_xy univ[y][x] = rand() < RAND_MAX / 5 ? 1 : 0;
+	}
 
 void evolve(void *u, int w, int h){
     char (*univ)[w] = u;
@@ -113,7 +119,7 @@ void hra(void *u, int w, int h, void *klav_str){
         }
         pthread_mutex_unlock(&(kla->kl_mut));
         if(stav == STAV_RUN || stav == STAV_STEP) {
-            show(univ, w, h);
+            gui_showUniv(univ, w, h);
             evolve(univ, w, h);
         }
         if(stav == STAV_STEP)
