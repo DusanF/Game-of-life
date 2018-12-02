@@ -7,3 +7,4 @@
 * -/< - pomalsie
 * S - uloz
 * Q - koniec
+* E - otvorenie/zatvorenie editora

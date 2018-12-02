@@ -91,6 +91,10 @@ void hra(void *u, int w, int h, void *klav_str){
 				case 'S':
 					saveUniv(univ, w, h);
 					break;
+				case 'E':
+					stav = STAV_PAUSE;
+					gui_edit(univ, w, h);
+					break;
 					
 				case 'Q':
 					return;
