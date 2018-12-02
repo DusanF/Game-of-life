@@ -44,16 +44,8 @@ int main(int argc, char *argv[]){
 
 	gui_showUniv(univ, w, h);
 
-	pthread_t threadKlavesnica;
-	KLAVESA kla;
+	hra(univ, w, h);
 
-	pthread_mutex_init(&kla.kl_mut, NULL);
-	pthread_create(&threadKlavesnica, NULL, obsluhaKlavesnice, &kla);
-
-	hra(univ, w, h, &kla);
-
-	pthread_join(threadKlavesnica, NULL);
-	pthread_mutex_destroy(&kla.kl_mut);
 	gui_end();
 	system("clear");
 	return 0;

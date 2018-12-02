@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ncurses.h>
 #include "defs.h"
 #include "gui.h"
 
@@ -75,18 +76,17 @@ void game_save(void *u, int w, int h){
 	fclose(file);
 }
 
-void hra(void *u, int w, int h, void *klav_str){
+void hra(void *u, int w, int h){
 	char (*univ)[w] = u;
-	KLAVESA *kla = (KLAVESA*) klav_str;
 
 	int stav = GAME_STATE_PAUSE;
 	unsigned short rychlost = 3;
+	int ch=0;
 
 	while (1) {
-		pthread_mutex_lock(&(kla->kl_mut));
-		if (kla->zmena) {
-			kla->zmena = 0;
-			switch(toupper(kla->tlacidlo)){
+		ch = getch();
+		if(ch>0){
+			switch(toupper(ch)){
 				case 'P':
 				case ' ':
 					if(stav == GAME_STATE_RUN)
@@ -123,12 +123,11 @@ void hra(void *u, int w, int h, void *klav_str){
 					break;
 
 				default:
-					if(kla->tlacidlo>='1' && kla->tlacidlo<='9')
-						rychlost = kla->tlacidlo - '1';
+					if(ch>='1' && ch<='9')
+						rychlost = ch - '1';
 					break;
 			}
 		}
-		pthread_mutex_unlock(&(kla->kl_mut));
 		if(stav == GAME_STATE_RUN || stav == GAME_STATE_STEP) {
 			gui_showUniv(univ, w, h);
 			game_evolve(univ, w, h);

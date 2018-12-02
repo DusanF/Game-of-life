@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <ncurses.h>
 #include "defs.h"
 #include "gui.h"
@@ -11,6 +12,7 @@ void gui_init(){
 	keypad(stdscr, TRUE);
 	noecho();
 	curs_set(0);
+	nodelay(stdscr, true);
 	refresh();
 	start_color();
 	init_pair(1, COLOR_GREEN, COLOR_RED);
@@ -26,7 +28,6 @@ void *obsluhaKlavesnice(void *klav_str){
 	KLAVESA *kla = (KLAVESA*) klav_str;
 	int znak;
 	while (1) {
-		//znak = getc(stdin);
 		znak = getch();
 
 		pthread_mutex_lock(&(kla->kl_mut));
@@ -97,6 +98,7 @@ void gui_edit(void *u, int w, int h){
 					}
 				break;
 		}
+	usleep(10000);
 	}
 	curs_set(0);
 }
