@@ -13,10 +13,10 @@ enum {
 };
 
 typedef struct Klavesa {
-    int tlacidlo;
-    int zmena;
-    //pthread_cond_t stlacene;
-    pthread_mutex_t kl_mut;
+	int tlacidlo;
+	int zmena;
+	//pthread_cond_t stlacene;
+	pthread_mutex_t kl_mut;
 } KLAVESA;
 
 #endif

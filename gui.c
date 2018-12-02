@@ -24,31 +24,31 @@ void gui_end(){
 
 void *obsluhaKlavesnice(void *klav_str){
 	KLAVESA *kla = (KLAVESA*) klav_str;
-    int znak;
-    while (1) {
-        //znak = getc(stdin);
-        znak = getch();
+	int znak;
+	while (1) {
+		//znak = getc(stdin);
+		znak = getch();
 
 		pthread_mutex_lock(&(kla->kl_mut));
-        kla->tlacidlo = znak;
-        kla->zmena = 1;
+		kla->tlacidlo = znak;
+		kla->zmena = 1;
 		pthread_mutex_unlock(&(kla->kl_mut));
 
 
-        if (toupper(znak) == 'Q') {
-            break;
-        }
-    }
-    return NULL;
+		if (toupper(znak) == 'Q') {
+			break;
+		}
+	}
+	return NULL;
 }
 
 void gui_edit(void *u, int w, int h){
-    char (*univ)[w] = u;
-    int ch=0, x=0, y=0;
-    move(0,0);
-    curs_set(1);
+	char (*univ)[w] = u;
+	int ch=0, x=0, y=0;
+	move(0,0);
+	curs_set(1);
 
-    while((ch != 'E') && (ch != 'e')){
+	while((ch != 'E') && (ch != 'e')){
 		ch = getch();
 		switch(ch){
 			case ' ':
@@ -102,8 +102,8 @@ void gui_edit(void *u, int w, int h){
 }
 
 void gui_showUniv(void *u, int w, int h){
-    char (*univ)[w] = u;
-    for_y{
+	char (*univ)[w] = u;
+	for_y{
 		move(y, 0);
 		for_x{
 			if(univ[y][x]){
