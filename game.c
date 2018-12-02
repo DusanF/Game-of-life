@@ -17,12 +17,19 @@ const unsigned dly_tab[] = {
 	5000
 };
 
-void naplnNahodne(void *u, int w, int h){
+void game_fillRand(void *u, int w, int h){
     char (*univ)[w] = u;
     for_xy univ[y][x] = rand() < RAND_MAX / 5 ? 1 : 0;
 	}
 
-void evolve(void *u, int w, int h){
+void game_fillMan(void *u, int w, int h){
+    char (*univ)[w] = u;
+    for_xy univ[y][x] = 0;
+    gui_showUniv(univ, w, h);
+	gui_edit(univ, w, h);
+}
+
+void game_evolve(void *u, int w, int h){
     char (*univ)[w] = u;
     char new[h][w];
 
@@ -38,7 +45,7 @@ void evolve(void *u, int w, int h){
     for_y for_x univ[y][x] = new[y][x];
 }
 
-void saveUniv(void *u, int w, int h){
+void game_save(void *u, int w, int h){
     char (*univ)[w] = u;
     
     char *filename = "save.gol";
@@ -72,7 +79,7 @@ void hra(void *u, int w, int h, void *klav_str){
     char (*univ)[w] = u;
 	KLAVESA *kla = (KLAVESA*) klav_str;
 
-    int stav = STAV_PAUSE;
+    int stav = GAME_STATE_PAUSE;
     unsigned short rychlost = 3;
 
     while (1) {
@@ -82,17 +89,17 @@ void hra(void *u, int w, int h, void *klav_str){
             switch(toupper(kla->tlacidlo)){
 				case 'P':
 				case ' ':
-					if(stav == STAV_RUN)
-						stav = STAV_PAUSE;
+					if(stav == GAME_STATE_RUN)
+						stav = GAME_STATE_PAUSE;
 					else
-						stav = STAV_RUN;
+						stav = GAME_STATE_RUN;
 					break;
 				
 				case 'S':
-					saveUniv(univ, w, h);
+					game_save(univ, w, h);
 					break;
 				case 'E':
-					stav = STAV_PAUSE;
+					stav = GAME_STATE_PAUSE;
 					gui_edit(univ, w, h);
 					break;
 					
@@ -112,7 +119,7 @@ void hra(void *u, int w, int h, void *klav_str){
 					break;
 					
 				case '0':
-					stav = STAV_STEP;
+					stav = GAME_STATE_STEP;
 					break;
 					
 				default:
@@ -122,12 +129,12 @@ void hra(void *u, int w, int h, void *klav_str){
 			}
         }
         pthread_mutex_unlock(&(kla->kl_mut));
-        if(stav == STAV_RUN || stav == STAV_STEP) {
+        if(stav == GAME_STATE_RUN || stav == GAME_STATE_STEP) {
             gui_showUniv(univ, w, h);
-            evolve(univ, w, h);
+            game_evolve(univ, w, h);
         }
-        if(stav == STAV_STEP)
-			stav = STAV_PAUSE;
+        if(stav == GAME_STATE_STEP)
+			stav = GAME_STATE_PAUSE;
 		else
 			usleep(dly_tab[rychlost]);
     }

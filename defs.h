@@ -9,7 +9,7 @@
 #define for_yx for_y for_x
 
 enum {
-	STAV_RUN, STAV_PAUSE, STAV_STEP
+	GAME_STATE_RUN, GAME_STATE_PAUSE, GAME_STATE_STEP
 };
 
 typedef struct Klavesa {

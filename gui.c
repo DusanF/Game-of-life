@@ -42,19 +42,6 @@ void *obsluhaKlavesnice(void *klav_str){
     return NULL;
 }
 
-
-void naplnRucne(void *u, int w, int h){
-    char (*univ)[w] = u;
-    //for_xy univ[y][x] = rand() < RAND_MAX / 2 ? 1 : 0;
-    for_xy univ[y][x] = 0;
-    univ[0][2]=1;
-    univ[1][1]=1;
-    univ[1][3]=1;
-    univ[2][1]=1;
-    univ[2][3]=1;
-    univ[3][2]=1;
-}
-
 void gui_edit(void *u, int w, int h){
     char (*univ)[w] = u;
     int ch=0, x=0, y=0;

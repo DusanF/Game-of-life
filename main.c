@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
 
     printf("Zadaj pocet stlpcov : ");
     scanf("%d", &w);
-    if (w < 5 || w > 133)
+    if (w < 5 || w > 135)
         w = 50;
 
     char vstup = 0;
@@ -37,9 +37,9 @@ int main(int argc, char *argv[]){
 	gui_init();
 
     if (vstup == 'n' || vstup == 'N')
-        naplnRucne(univ, w, h);
+		game_fillMan(univ, w, h);
     else
-		naplnNahodne(univ, w, h);
+		game_fillRand(univ, w, h);
 
 
 	gui_showUniv(univ, w, h);
