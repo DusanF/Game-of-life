@@ -24,25 +24,6 @@ void gui_end(){
 	attroff(COLOR_PAIR(1));
 }
 
-void *obsluhaKlavesnice(void *klav_str){
-	KLAVESA *kla = (KLAVESA*) klav_str;
-	int znak;
-	while (1) {
-		znak = getch();
-
-		pthread_mutex_lock(&(kla->kl_mut));
-		kla->tlacidlo = znak;
-		kla->zmena = 1;
-		pthread_mutex_unlock(&(kla->kl_mut));
-
-
-		if (toupper(znak) == 'Q') {
-			break;
-		}
-	}
-	return NULL;
-}
-
 void gui_edit(void *u, int w, int h){
 	char (*univ)[w] = u;
 	int ch=0, x=0, y=0;

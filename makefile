@@ -1,2 +1,2 @@
 gol: main.c
-	gcc -o out main.c game.c gui.c -lpthread -lncurses
+	gcc -o out main.c game.c gui.c -lncurses

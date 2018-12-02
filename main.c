@@ -5,7 +5,6 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <time.h>
-#include <pthread.h>
 #include "defs.h"
 #include "game.h"
 #include "gui.h"
