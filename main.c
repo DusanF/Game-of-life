@@ -13,22 +13,27 @@
 int main(int argc, char *argv[]){
 	srand(time(NULL));
 	system("clear");
-	int w = 0, h = 0;
+	world_t world;
+	world.w = 0;
+	world.h = 0;
+
 
 	printf("Víta ťa Game Of Life (GoL)!\n\nZadaj pocet riadkov: ");
-	scanf("%d", &h);
-	if (h < 5 || h > 65)
-		h = 30;
+	scanf("%d", &(world.h));
+	if (world.h < 5 || world.h > 65)
+		world.h = 30;
 
 	printf("Zadaj pocet stlpcov : ");
-	scanf("%d", &w);
-	if (w < 5 || w > 135)
-		w = 50;
+	scanf("%d", &(world.w));
+	if (world.w < 5 || world.w > 135)
+		world.w = 50;
 
 	char vstup = 0;
 	while ((vstup = getchar()) != '\n' && vstup != EOF);
 
-	char univ[h][w];
+	//char univ[h][w];
+	world.cells = malloc(world.h * world.w * sizeof(char));
+	
 
 	printf("Generovat nahodne? [Y/n]: ");
 	scanf("%c", &vstup);
@@ -36,16 +41,17 @@ int main(int argc, char *argv[]){
 	gui_init();
 
 	if (vstup == 'n' || vstup == 'N')
-		game_fillMan(univ, w, h);
+		game_fillMan(&world);
 	else
-		game_fillRand(univ, w, h);
+		game_fillRand(&world);
 
 
-	gui_showUniv(univ, w, h);
+	gui_showUniv(&world);
 
-	hra(univ, w, h);
+	hra(&world);
 
 	gui_end();
 	system("clear");
+	free(world.cells);
 	return 0;
 }

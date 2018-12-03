@@ -18,36 +18,43 @@ const unsigned dly_tab[] = {
 	5000
 };
 
-void game_fillRand(void *u, int w, int h){
-	char (*univ)[w] = u;
-	for_xy univ[y][x] = rand() < RAND_MAX / 5 ? 1 : 0;
+void game_fillRand(void *w){
+	world_t (*world) = w;
+	for_cells *(world->cells+i) = rand() < RAND_MAX / 5 ? 1 : 0;
 	}
 
-void game_fillMan(void *u, int w, int h){
-	char (*univ)[w] = u;
-	for_xy univ[y][x] = 0;
-	gui_showUniv(univ, w, h);
-	gui_edit(univ, w, h);
+void game_fillMan(void *w){
+	world_t (*world) = w;
+	for_cells *(world->cells+i) = 0;
+	gui_showUniv(world);
+	gui_edit(world);
 }
 
-void game_evolve(void *u, int w, int h){
-	char (*univ)[w] = u;
-	char new[h][w];
+void game_evolve(void *w){
+	world_t (*world) = w;
+	char* new;
+	//new = malloc((world->w)*(world->h));
+	
+	//free(new);
+	int i=0;
+	char old[world->h][world->w];
+	for_yx old[y][x] = *(world->cells + i++);
+
 
 	for_y for_x{
 		int n = 0;
 		for (int y1 = y - 1; y1 <= y + 1; y1++)
 			for (int x1 = x - 1; x1 <= x + 1; x1++)
-				if (univ[(y1 + h) % h][(x1 + w) % w])
+				if (old[(y1 + world->h) % world->h][(x1 + world->w) % world->w])
 					n++;
 
-		if (univ[y][x]) n--;
-		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));}
-	for_y for_x univ[y][x] = new[y][x];
+		if (old[y][x]) n--;
+		*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
+	}
 }
 
-void game_save(void *u, int w, int h){
-	char (*univ)[w] = u;
+void game_save(void *w){
+	world_t (*world) = w;
 
 	char *filename = "save.gol";
 	FILE *file;
@@ -63,21 +70,20 @@ void game_save(void *u, int w, int h){
 		return;
 		}
 
-	fprintf(file, "%d\n%d\n", w, h);
-	for_yx {
+	fprintf(file, "%d\n%d\n", world->w, world->h);
+	for_cells{
 		pocet++;
-		if(univ[y][x] != aktual){
+		if(*world->cells != aktual){
 			fprintf(file, "%d\n", pocet);
 			pocet = 0;
-			aktual = univ[y][x];
+			aktual = *world->cells;
 		}
-
 	}
 	fclose(file);
 }
 
-void hra(void *u, int w, int h){
-	char (*univ)[w] = u;
+void hra(void *w){
+	world_t (*world) = w;
 
 	int stav = GAME_STATE_PAUSE;
 	unsigned short rychlost = 3;
@@ -96,11 +102,11 @@ void hra(void *u, int w, int h){
 					break;
 
 				case 'S':
-					game_save(univ, w, h);
+					game_save(world);
 					break;
 				case 'E':
 					stav = GAME_STATE_PAUSE;
-					gui_edit(univ, w, h);
+					gui_edit(world);
 					break;
 
 				case 'Q':
@@ -129,8 +135,8 @@ void hra(void *u, int w, int h){
 			}
 		}
 		if(stav == GAME_STATE_RUN || stav == GAME_STATE_STEP) {
-			gui_showUniv(univ, w, h);
-			game_evolve(univ, w, h);
+			gui_showUniv(world);
+			game_evolve(world);
 		}
 		if(stav == GAME_STATE_STEP)
 			stav = GAME_STATE_PAUSE;

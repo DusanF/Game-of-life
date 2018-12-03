@@ -24,8 +24,8 @@ void gui_end(){
 	attroff(COLOR_PAIR(1));
 }
 
-void gui_edit(void *u, int w, int h){
-	char (*univ)[w] = u;
+void gui_edit(void *w){
+	world_t (*world) = w;
 	int ch=0, x=0, y=0;
 	move(0,0);
 	curs_set(1);
@@ -34,12 +34,12 @@ void gui_edit(void *u, int w, int h){
 		ch = getch();
 		switch(ch){
 			case ' ':
-				if(univ[y][x]){
-					univ[y][x] = 0;
+				if(*(world->cells+x+(y*world->w))){
+					*(world->cells+x+(y*world->w)) = 0;
 					addch(' ');
 					addch(' ');
 				}else{
-					univ[y][x] = 1;
+					*(world->cells+x+(y*world->w)) = 1;
 					addch('{');
 					addch('}');
 				}
@@ -50,12 +50,12 @@ void gui_edit(void *u, int w, int h){
 				if(y>0)
 					move(--y,2*x);
 				else{
-					y=h-1;
+					y=world->h-1;
 					move(y,2*x);
 					}
 				break;
 			case KEY_DOWN:
-				if(y<h-1)
+				if(y<world->h-1)
 					move(++y,2*x);
 				else{
 					y=0;
@@ -66,12 +66,12 @@ void gui_edit(void *u, int w, int h){
 				if(x>0)
 					move(y,2*(--x));
 				else{
-					x=w-1;
+					x=world->w-1;
 					move(y,2*x);
 					}
 				break;
 			case KEY_RIGHT:
-				if(x<w-1)
+				if(x<world->w-1)
 					move(y,2*(++x));
 				else{
 					x=0;
@@ -84,8 +84,24 @@ void gui_edit(void *u, int w, int h){
 	curs_set(0);
 }
 
-void gui_showUniv(void *u, int w, int h){
-	char (*univ)[w] = u;
+void gui_showUniv(void *w){
+	world_t (*world) = w;
+	
+	for(int y=0; y<world->h; y++){
+		move(y, 0);
+		for(int x=0; x<world->w; x++)
+			if(*(world->cells+x+(y*world->w))){
+				addch('{');
+				addch('}');
+			}else{
+				addch(' ');
+				addch(' ');
+			}
+	}
+	refresh();
+}
+
+/*
 	for_y{
 		move(y, 0);
 		for_x{
@@ -107,3 +123,4 @@ void gui_showUniv(void *u, int w, int h){
 	refresh();
 
 }
+*/
