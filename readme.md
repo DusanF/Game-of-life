@@ -6,5 +6,6 @@
 * +/> - rychlejsie
 * -/< - pomalsie
 * S - uloz
+* L - nacitaj
 * Q - koniec
 * E - otvorenie/zatvorenie editora
