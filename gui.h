@@ -6,5 +6,7 @@ void gui_clr();
 void gui_showWorld(void *);
 void gui_init();
 void gui_end();
+void gui_pause();
+void gui_resume();
 
 #endif

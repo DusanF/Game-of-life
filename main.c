@@ -45,10 +45,8 @@ int main(int argc, char *argv[]){
 	else
 		game_fillRand(&world);
 
-
 	gui_showWorld(&world);
-
-	hra(&world);
+	game_runner(&world);
 
 	gui_end();
 	system("clear");

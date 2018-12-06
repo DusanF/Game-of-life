@@ -6,7 +6,7 @@ void game_fillMan(void *);
 void game_evolve(void *);
 void game_save(void *);
 void game_load(void *);
-void hra(void *);
+void game_runner(void *);
 
 
 #endif

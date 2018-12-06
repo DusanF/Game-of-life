@@ -25,6 +25,16 @@ void gui_end(){
 	attroff(COLOR_PAIR(1));
 }
 
+void gui_pause(){
+	def_prog_mode();
+	endwin();
+}
+
+void gui_resume(){
+	reset_prog_mode();
+	refresh();
+}
+
 void gui_edit(void *w){
 	world_t (*world) = w;
 	int ch=0, x=0, y=0;

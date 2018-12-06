@@ -61,12 +61,10 @@ void game_save(void *w){
 	
 	filename = malloc(FILENAME_MAX);
 
-	def_prog_mode();
-	endwin();
+	gui_pause();
     printf("Ulozit ako: ");
     scanf("%s", filename);
-	reset_prog_mode();
-	refresh();
+    gui_resume();
 
 	file = fopen(filename, "w");
 	if(file == 0){
@@ -97,12 +95,10 @@ void game_load(void *w){
 	
 	filename = malloc(FILENAME_MAX);
 
-	def_prog_mode();
-	endwin();
+	gui_pause();
     printf("Nazov suboru: ");
     scanf("%s", filename);
-	reset_prog_mode();
-	refresh();
+    gui_resume();
 
 	file = fopen(filename, "r");
 	if(file == 0){
@@ -130,7 +126,7 @@ void game_load(void *w){
 	free(filename);
 }
 
-void hra(void *w){
+void game_runner(void *w){
 	world_t (*world) = w;
 
 	int stav = GAME_STATE_PAUSE;
