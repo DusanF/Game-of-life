@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
 
 	//char univ[h][w];
 	world.cells = malloc(world.h * world.w * sizeof(char));
-	
+
 
 	printf("Generovat nahodne? [Y/n]: ");
 	scanf("%c", &vstup);
