@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
 		game_fillRand(&world);
 
 
-	gui_showUniv(&world);
+	gui_showWorld(&world);
 
 	hra(&world);
 

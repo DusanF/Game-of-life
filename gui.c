@@ -13,10 +13,11 @@ void gui_init(){
 	noecho();
 	curs_set(0);
 	nodelay(stdscr, true);
-	refresh();
 	start_color();
 	init_pair(1, COLOR_GREEN, COLOR_RED);
 	attron(COLOR_PAIR(1));
+	gui_clr();
+	refresh();
 }
 
 void gui_end(){
@@ -84,7 +85,11 @@ void gui_edit(void *w){
 	curs_set(0);
 }
 
-void gui_showUniv(void *w){
+void gui_clr(){
+	erase();
+}
+
+void gui_showWorld(void *w){
 	world_t (*world) = w;
 	
 	for(int y=0; y<world->h; y++){
@@ -100,27 +105,3 @@ void gui_showUniv(void *w){
 	}
 	refresh();
 }
-
-/*
-	for_y{
-		move(y, 0);
-		for_x{
-			if(univ[y][x]){
-				//addch(ACS_CKBOARD);
-				//addch(ACS_CKBOARD);
-				//addch(ACS_BLOCK);
-				//addch(ACS_BLOCK);
-				//addch(' '|A_REVERSE);
-				//addch(' '|A_REVERSE);
-				addch('{');
-				addch('}');
-			}else{
-				addch(' ');
-				addch(' ');
-			}
-		}
-	}
-	refresh();
-
-}
-*/

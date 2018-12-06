@@ -26,16 +26,14 @@ void game_fillRand(void *w){
 void game_fillMan(void *w){
 	world_t (*world) = w;
 	for_cells *(world->cells+i) = 0;
-	gui_showUniv(world);
+	gui_showWorld(world);
 	gui_edit(world);
 }
 
 void game_evolve(void *w){
 	world_t (*world) = w;
 	char* new;
-	//new = malloc((world->w)*(world->h));
-	
-	//free(new);
+
 	int i=0;
 	char old[world->h][world->w];
 	for_yx old[y][x] = *(world->cells + i++);
@@ -56,13 +54,19 @@ void game_evolve(void *w){
 void game_save(void *w){
 	world_t (*world) = w;
 
-	char *filename = "save.gol";
+	char *filename;// = "save.gol";
 	FILE *file;
 	char aktual=0;
 	unsigned pocet=-1;
+	
+	filename = malloc(FILENAME_MAX);
 
-//    printf("Save as: ");
-//    scanf("%s", filename);
+	def_prog_mode();
+	endwin();
+    printf("Ulozit ako: ");
+    scanf("%s", filename);
+	reset_prog_mode();
+	refresh();
 
 	file = fopen(filename, "w");
 	if(file == 0){
@@ -70,16 +74,60 @@ void game_save(void *w){
 		return;
 		}
 
-	fprintf(file, "%d\n%d\n", world->w, world->h);
+	fprintf(file, "%u\n%u\n", world->w, world->h);
 	for_cells{
 		pocet++;
-		if(*world->cells != aktual){
-			fprintf(file, "%d\n", pocet);
+		if(*(world->cells + i) != aktual){
+			fprintf(file, "%u\n", pocet);
 			pocet = 0;
-			aktual = *world->cells;
+			aktual = *(world->cells + i);
 		}
 	}
 	fclose(file);
+	free(filename);
+}
+
+void game_load(void *w){
+	world_t (*world) = w;
+
+	char *filename;// = "save.gol";
+	FILE *file;
+	char aktual=0;
+	unsigned pocet, pos=0;
+	
+	filename = malloc(FILENAME_MAX);
+
+	def_prog_mode();
+	endwin();
+    printf("Nazov suboru: ");
+    scanf("%s", filename);
+	reset_prog_mode();
+	refresh();
+
+	file = fopen(filename, "r");
+	if(file == 0){
+		perror("Chyba pri otvarani suboru");
+		return;
+		}
+
+	fscanf(file, "%u", &(world->w));
+	fscanf(file, "%u", &(world->h));
+	world->cells = realloc(world->cells, world->h * world->w * sizeof(char));
+
+	while(fscanf(file, "%u", &pocet) != EOF){
+		while(pocet--){
+			*(world->cells+pos) = aktual;
+			pos++;
+		}
+		aktual = aktual ? 0 : 1;
+	}
+	while(pos < world->h * world->w){
+		*(world->cells+pos) = aktual;
+		pos++;
+	}
+
+	fclose(file);
+	free(filename);
 }
 
 void hra(void *w){
@@ -103,6 +151,12 @@ void hra(void *w){
 
 				case 'S':
 					game_save(world);
+					break;
+				case 'L':
+					stav = GAME_STATE_PAUSE;
+					game_load(world);
+					gui_clr();
+					gui_showWorld(world);
 					break;
 				case 'E':
 					stav = GAME_STATE_PAUSE;
@@ -135,7 +189,7 @@ void hra(void *w){
 			}
 		}
 		if(stav == GAME_STATE_RUN || stav == GAME_STATE_STEP) {
-			gui_showUniv(world);
+			gui_showWorld(world);
 			game_evolve(world);
 		}
 		if(stav == GAME_STATE_STEP)
