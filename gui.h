@@ -3,10 +3,11 @@
 
 void gui_edit(void *);
 void gui_clr();
-void gui_showWorld(void *);
+void gui_drawWorld(void *);
 void gui_init();
 void gui_end();
 void gui_pause();
 void gui_resume();
+void gui_drawHelp();
 
 #endif

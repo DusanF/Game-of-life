@@ -35,6 +35,24 @@ void gui_resume(){
 	refresh();
 }
 
+void gui_drawHelp(){
+	gui_pause();
+	system("clear");
+	printf("\n       Ovladanie:\n\n");
+	printf(" \'E\'\t\t\totvorenie/zatvorenie editora\n");
+	printf(" \'P\' / medzera\t\tpauza/pokracuj\n");
+	printf(" \'0\'\t\t\tjeden krok\n");
+	printf(" \'1\' - \'9\'\t\trychlost simulacie\n");
+	printf(" \'+\' / \'>\'\t\trychlejsie\n");
+	printf(" \'-\' / \'<\'\t\tpomalsie\n");
+	printf(" \'S\'\t\t\tuloz\n");
+	printf(" \'L\'\t\t\tnacitaj\n");
+	printf(" \'Q\'\t\t\tkoniec\n");
+	printf("\n   Stlac enter pre navrat\n");
+	getchar();
+	gui_resume();
+}
+
 void gui_edit(void *w){
 	world_t (*world) = w;
 	int ch=0, x=0, y=0;
@@ -99,7 +117,7 @@ void gui_clr(){
 	erase();
 }
 
-void gui_showWorld(void *w){
+void gui_drawWorld(void *w){
 	world_t (*world) = w;
 	
 	for(int y=0; y<world->h; y++){

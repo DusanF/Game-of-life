@@ -26,7 +26,7 @@ void game_fillRand(void *w){
 void game_fillMan(void *w){
 	world_t (*world) = w;
 	for_cells *(world->cells+i) = 0;
-	gui_showWorld(world);
+	gui_drawWorld(world);
 	gui_edit(world);
 }
 
@@ -129,38 +129,41 @@ void game_load(void *w){
 void game_runner(void *w){
 	world_t (*world) = w;
 
-	int stav = GAME_STATE_PAUSE;
+	char state = GAME_STATE_PAUSE;
 	unsigned short rychlost = 3;
 	int ch=0;
 
-	while (1) {
+	while(toupper(ch) != 'Q') {
 		ch = getch();
 		if(ch>0){
 			switch(toupper(ch)){
 				case 'P':
 				case ' ':
-					if(stav == GAME_STATE_RUN)
-						stav = GAME_STATE_PAUSE;
+					if(state == GAME_STATE_RUN)
+						state = GAME_STATE_PAUSE;
 					else
-						stav = GAME_STATE_RUN;
+						state = GAME_STATE_RUN;
 					break;
 
 				case 'S':
 					game_save(world);
 					break;
+
 				case 'L':
-					stav = GAME_STATE_PAUSE;
+					state = GAME_STATE_PAUSE;
 					game_load(world);
 					gui_clr();
-					gui_showWorld(world);
-					break;
-				case 'E':
-					stav = GAME_STATE_PAUSE;
-					gui_edit(world);
+					gui_drawWorld(world);
 					break;
 
-				case 'Q':
-					return;
+				case 'H':
+					gui_drawHelp();
+					break;
+
+				case 'E':
+					state = GAME_STATE_PAUSE;
+					gui_edit(world);
+					break;
 
 				case '+':
 				case '>':
@@ -175,7 +178,7 @@ void game_runner(void *w){
 					break;
 
 				case '0':
-					stav = GAME_STATE_STEP;
+					state = GAME_STATE_STEP;
 					break;
 
 				default:
@@ -184,12 +187,12 @@ void game_runner(void *w){
 					break;
 			}
 		}
-		if(stav == GAME_STATE_RUN || stav == GAME_STATE_STEP) {
-			gui_showWorld(world);
+		if(state == GAME_STATE_RUN || state == GAME_STATE_STEP) {
+			gui_drawWorld(world);
 			game_evolve(world);
 		}
-		if(stav == GAME_STATE_STEP)
-			stav = GAME_STATE_PAUSE;
+		if(state == GAME_STATE_STEP)
+			state = GAME_STATE_PAUSE;
 		else
 			usleep(dly_tab[rychlost]);
 	}
