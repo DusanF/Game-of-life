@@ -15,6 +15,7 @@ typedef struct{
 	int w;
 	int h;
 	char* cells;
+	unsigned generation;
 } world_t;
 
 #endif

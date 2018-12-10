@@ -166,5 +166,9 @@ void gui_drawWorld(void *w){
 				addch(' ');
 			}
 	}
+	move(world->h, 0);
+	attroff(COLOR_PAIR(1));
+	printw(" stlac H pre pomoc\n generacia: %d", world->generation);
+	attron(COLOR_PAIR(1));
 	refresh();
 }

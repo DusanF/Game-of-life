@@ -16,6 +16,7 @@ int main(int argc, char *argv[]){
 	world_t world;
 	world.w = 0;
 	world.h = 0;
+	world.generation = 0;
 
 
 	printf("Víta ťa Game Of Life (GoL)!\n\nZadaj pocet riadkov: ");

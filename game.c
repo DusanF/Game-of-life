@@ -49,6 +49,7 @@ void game_evolve(void *w){
 		if (old[y][x]) n--;
 		*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
 	}
+	world->generation++;
 }
 
 void game_save(void *w){
@@ -121,6 +122,7 @@ void game_load(void *w){
 		*(world->cells+pos) = aktual;
 		pos++;
 	}
+	world->generation = 0;
 
 	fclose(file);
 	free(filename);
@@ -130,7 +132,7 @@ void game_runner(void *w){
 	world_t (*world) = w;
 
 	char state = GAME_STATE_PAUSE;
-	unsigned short rychlost = 3;
+	unsigned short rychlost = 4;
 	int ch=0;
 
 	while(toupper(ch) != 'Q') {
