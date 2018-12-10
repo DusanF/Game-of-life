@@ -8,6 +8,7 @@ void gui_init();
 void gui_end();
 void gui_pause();
 void gui_resume();
-void gui_drawHelp();
+void gui_drawGameHelp();
+void gui_drawEditHelp();
 
 #endif

@@ -54,7 +54,7 @@ void game_evolve(void *w){
 void game_save(void *w){
 	world_t (*world) = w;
 
-	char *filename;// = "save.gol";
+	char *filename;
 	FILE *file;
 	char aktual=0;
 	unsigned pocet=-1;
@@ -88,7 +88,7 @@ void game_save(void *w){
 void game_load(void *w){
 	world_t (*world) = w;
 
-	char *filename;// = "save.gol";
+	char *filename;
 	FILE *file;
 	char aktual=0;
 	unsigned pocet, pos=0;
@@ -157,7 +157,7 @@ void game_runner(void *w){
 					break;
 
 				case 'H':
-					gui_drawHelp();
+					gui_drawGameHelp();
 					break;
 
 				case 'E':

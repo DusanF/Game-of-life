@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ncurses.h>
 #include "defs.h"
+#include "game.h"
 #include "gui.h"
 
 void gui_init(){
@@ -35,23 +36,38 @@ void gui_resume(){
 	refresh();
 }
 
-void gui_drawHelp(){
+void gui_drawGameHelp(){
 	gui_pause();
 	system("clear");
 	printf("\n       Ovladanie:\n\n");
-	printf(" \'E\'\t\t\totvorenie/zatvorenie editora\n");
-	printf(" \'P\' / medzera\t\tpauza/pokracuj\n");
-	printf(" \'0\'\t\t\tjeden krok\n");
-	printf(" \'1\' - \'9\'\t\trychlost simulacie\n");
-	printf(" \'+\' / \'>\'\t\trychlejsie\n");
-	printf(" \'-\' / \'<\'\t\tpomalsie\n");
-	printf(" \'S\'\t\t\tuloz\n");
-	printf(" \'L\'\t\t\tnacitaj\n");
-	printf(" \'Q\'\t\t\tkoniec\n");
+	printf(" \'E\'\t\t  otvorenie editora\n");
+	printf(" \'P\' / medzera\t  pauza/pokracuj\n");
+	printf(" \'0\'\t\t  jeden krok\n");
+	printf(" \'1\' - \'9\'\t  rychlost simulacie\n");
+	printf(" \'+\' / \'>\'\t  rychlejsie\n");
+	printf(" \'-\' / \'<\'\t  pomalsie\n");
+	printf(" \'S\'\t\t  uloz\n");
+	printf(" \'L\'\t\t  nacitaj\n");
+	printf(" \'Q\'\t\t  koniec\n");
 	printf("\n   Stlac enter pre navrat\n");
 	getchar();
 	gui_resume();
 }
+
+void gui_drawEditHelp(){
+	gui_pause();
+	system("clear");
+	printf("\n       Ovladanie:\n\n");
+	printf(" medzera\tzmena bunky\n");
+	printf(" sipky\t\tpohyb\n");
+	printf(" \'S\'\t\tuloz\n");
+	printf(" \'L\'\t\tnacitaj\n");
+	printf(" \'E\'\t\tzatvorenie editora\n");
+	printf("\n   Stlac enter pre navrat\n");
+	getchar();
+	gui_resume();
+}
+
 
 void gui_edit(void *w){
 	world_t (*world) = w;
@@ -106,6 +122,25 @@ void gui_edit(void *w){
 					x=0;
 					move(y,2*x);
 					}
+				break;
+			case 'S':
+			case 's':
+				game_save(world);
+				break;
+
+			case 'L':
+			case 'l':
+				game_load(world);
+				gui_clr();
+				gui_drawWorld(world);
+				x = 0;
+				y = 0;
+				move(0,0);
+				break;
+
+			case 'H':
+			case 'h':
+				gui_drawEditHelp();
 				break;
 		}
 	usleep(10000);
