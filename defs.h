@@ -8,7 +8,7 @@
 #define for_yx for_y for_x
 
 enum {
-	GAME_STATE_RUN, GAME_STATE_PAUSE, GAME_STATE_STEP
+	GAME_STATE_RUN, GAME_STATE_PAUSE, GAME_STATE_STEP, GAME_STATE_EDIT
 };
 
 typedef struct{
@@ -16,6 +16,7 @@ typedef struct{
 	int h;
 	char* cells;
 	unsigned generation;
+	char state;
 } world_t;
 
 #endif

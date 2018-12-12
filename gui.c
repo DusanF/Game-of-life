@@ -7,6 +7,14 @@
 #include "game.h"
 #include "gui.h"
 
+
+const char *STAT_STR[] = {
+	"Run  ",
+	"Pause",
+	"Step ",
+	"Edit "
+};
+
 void gui_init(){
 	initscr();
 	cbreak();
@@ -72,6 +80,9 @@ void gui_drawEditHelp(){
 void gui_edit(void *w){
 	world_t (*world) = w;
 	int ch=0, x=0, y=0;
+
+	gui_drawStat(world);
+
 	move(0,0);
 	curs_set(1);
 
@@ -152,6 +163,16 @@ void gui_clr(){
 	erase();
 }
 
+void gui_drawStat(void *w){
+	world_t (*world) = w;
+
+	move(world->h, 0);
+	attroff(COLOR_PAIR(1));
+	printw(" stlac H pre pomoc\n stav: %s\tgeneracia: %d", STAT_STR[world->state], world->generation);
+	attron(COLOR_PAIR(1));
+	refresh();
+}
+
 void gui_drawWorld(void *w){
 	world_t (*world) = w;
 	
@@ -166,9 +187,5 @@ void gui_drawWorld(void *w){
 				addch(' ');
 			}
 	}
-	move(world->h, 0);
-	attroff(COLOR_PAIR(1));
-	printw(" stlac H pre pomoc\n generacia: %d", world->generation);
-	attron(COLOR_PAIR(1));
 	refresh();
 }

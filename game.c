@@ -131,9 +131,11 @@ void game_load(void *w){
 void game_runner(void *w){
 	world_t (*world) = w;
 
-	char state = GAME_STATE_PAUSE;
+	world->state = GAME_STATE_PAUSE;
 	unsigned short rychlost = 4;
 	int ch=0;
+
+	gui_drawStat(world);
 
 	while(toupper(ch) != 'Q') {
 		ch = getch();
@@ -141,10 +143,10 @@ void game_runner(void *w){
 			switch(toupper(ch)){
 				case 'P':
 				case ' ':
-					if(state == GAME_STATE_RUN)
-						state = GAME_STATE_PAUSE;
+					if(world->state == GAME_STATE_RUN)
+						world->state = GAME_STATE_PAUSE;
 					else
-						state = GAME_STATE_RUN;
+						world->state = GAME_STATE_RUN;
 					break;
 
 				case 'S':
@@ -152,10 +154,11 @@ void game_runner(void *w){
 					break;
 
 				case 'L':
-					state = GAME_STATE_PAUSE;
+					world->state = GAME_STATE_PAUSE;
 					game_load(world);
 					gui_clr();
 					gui_drawWorld(world);
+					gui_drawStat(world);
 					break;
 
 				case 'H':
@@ -163,8 +166,10 @@ void game_runner(void *w){
 					break;
 
 				case 'E':
-					state = GAME_STATE_PAUSE;
+					world->state = GAME_STATE_EDIT;
 					gui_edit(world);
+					world->state = GAME_STATE_PAUSE;
+					gui_drawStat(world);
 					break;
 
 				case '+':
@@ -180,7 +185,7 @@ void game_runner(void *w){
 					break;
 
 				case '0':
-					state = GAME_STATE_STEP;
+					world->state = GAME_STATE_STEP;
 					break;
 
 				default:
@@ -189,13 +194,15 @@ void game_runner(void *w){
 					break;
 			}
 		}
-		if(state == GAME_STATE_RUN || state == GAME_STATE_STEP) {
-			gui_drawWorld(world);
+		if(world->state == GAME_STATE_RUN || world->state == GAME_STATE_STEP) {
 			game_evolve(world);
+			gui_drawWorld(world);
+			gui_drawStat(world);
 		}
-		if(state == GAME_STATE_STEP)
-			state = GAME_STATE_PAUSE;
-		else
+		if(world->state == GAME_STATE_STEP){
+			world->state = GAME_STATE_PAUSE;
+			gui_drawStat(world);
+		}else
 			usleep(dly_tab[rychlost]);
 	}
 
