@@ -29,11 +29,10 @@ int main(int argc, char *argv[]){
 	if (world.w < 5 || world.w > 135)
 		world.w = 50;
 
-	char vstup = 0;
-	while ((vstup = getchar()) != '\n' && vstup != EOF);
-
 	world.cells = malloc(world.h * world.w * sizeof(char));
 
+	char vstup = 0;
+	while ((vstup = getchar()) != '\n' && vstup != EOF);
 
 	printf("Generovat nahodne? [Y/n]: ");
 	scanf("%c", &vstup);

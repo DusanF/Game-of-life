@@ -9,10 +9,10 @@
 
 
 const char *STAT_STR[] = {
-	"Run  ",
-	"Pause",
-	"Step ",
-	"Edit "
+	"Beh   ",
+	"Pauza ",
+	"Krok  ",
+	"Editor"
 };
 
 void gui_init(){

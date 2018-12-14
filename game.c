@@ -143,9 +143,10 @@ void game_runner(void *w){
 			switch(toupper(ch)){
 				case 'P':
 				case ' ':
-					if(world->state == GAME_STATE_RUN)
+					if(world->state == GAME_STATE_RUN){
 						world->state = GAME_STATE_PAUSE;
-					else
+						gui_drawStat(world);
+					}else
 						world->state = GAME_STATE_RUN;
 					break;
 
