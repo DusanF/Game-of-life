@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include "defs.h"
 #include "gui.h"
+#include "net.h"
 
 const unsigned dly_tab[] = {
 	1000000,
@@ -167,6 +168,10 @@ void game_runner(void *w){
 					gui_clr();
 					gui_drawWorld(world);
 					gui_drawStat(world);
+					break;
+
+				case 'N':
+					net_save(*world);
 					break;
 
 				case 'H':
