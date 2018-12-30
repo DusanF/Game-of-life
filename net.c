@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "defs.h"
+#include <pwd.h>
 
 int net_connect(int *sck, int port, char *adr) {
 	struct sockaddr_in serv_addr;
@@ -54,10 +55,26 @@ void net_save(void *w){
 		sleep(2);
 		return;
 	}
-	printf("Pripojenie uspesne\nZadaj nazov suboru: ");
+	printf("Pripojenie uspesne\n");
 	
 	char *buffer;
-	buffer = malloc(30);
+	register struct passwd *pw;
+	pw = getpwuid(geteuid());
+	
+	buffer = malloc(strlen(pw->pw_name));
+	strcpy(buffer, pw->pw_name);
+	write(socket, buffer, strlen(buffer));
+
+	char odpoved;
+	read(socket, &odpoved, 1);
+	if(odpoved == SERVER_USER_OK)
+		printf("Pouzivatel \"%s\" prihlaseny\n", buffer);
+	else if(odpoved == SERVER_USER_NEW)
+		printf("Vytvoreny novy pouzivatel \"%s\"\n", buffer);
+	
+	printf("Zadaj nazov suboru: ");
+
+	buffer = realloc(buffer, 30);
 	scanf("%s", buffer+3);
 	
 	unsigned buffSize = strlen(buffer+3) + 3 + world->w*world->h;
@@ -69,12 +86,10 @@ void net_save(void *w){
 	memcpy(buffer+3+strlen(buffer+3), world->cells, world->w*world->h);
 
 	write(socket, buffer, buffSize);
-	//printBuff(buffer, buffSize);
 	free(buffer);
-	char odpoved;
 
 	read(socket, &odpoved, 1);
-	if(odpoved = 1){
+	if(odpoved = SERVER_SAVE_OK){
 		printf("Ukladanie uspesne\n");
 	}else{
 		printf("Chyba pri ukladani\n");

@@ -1,2 +1,18 @@
-gol: main.c
-	gcc -o out main.c game.c gui.c file.c net.c -lncurses
+OUTPUTS = gol server
+CC = gcc
+
+all: $(OUTPUTS)
+
+clean:
+	rm -f $(OUTPUTS) *.o
+
+.PHONY: all clean
+
+%.o: %.c
+	$(CC) -c -o $@ $<
+
+gol: main.o game.o gui.o file.o net.o
+	$(CC) -o $@ $^ -lncurses
+
+server: server.o
+	$(CC) -o $@ $^
