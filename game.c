@@ -6,6 +6,7 @@
 #include "defs.h"
 #include "gui.h"
 #include "net.h"
+#include "file.h"
 
 const unsigned dly_tab[] = {
 	1000000,
@@ -61,37 +62,17 @@ void game_evolve(void *w){
 }
 
 void game_save(void *w){
-	world_t (*world) = w;
-
-	char *filename;
-	FILE *file;
-	char aktual=0;
-	unsigned pocet=-1;
-	
-	filename = malloc(FILENAME_MAX);
-
 	gui_pause();
-    printf("Ulozit ako: ");
-    scanf("%s", filename);
-    gui_resume();
 
-	file = fopen(filename, "w");
-	if(file == 0){
-		perror("Chyba pri vytvarani suboru");
-		return;
-		}
-
-	fprintf(file, "%u\n%u\n", world->w, world->h);
-	for(int i=0; i<(world->w * world->h); i++){
-		pocet++;
-		if(*(world->cells + i) != aktual){
-			fprintf(file, "%u\n", pocet);
-			pocet = 0;
-			aktual = *(world->cells + i);
-		}
-	}
-	fclose(file);
-	free(filename);
+	char vstup;
+	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
+	scanf("%c", &vstup);
+	
+	if (vstup == 'S' || vstup == 's')
+		net_save(w);
+	else
+		file_save(w);
+	gui_resume();
 }
 
 void game_load(void *w){
@@ -168,10 +149,6 @@ void game_runner(void *w){
 					gui_clr();
 					gui_drawWorld(world);
 					gui_drawStat(world);
-					break;
-
-				case 'N':
-					net_save(*world);
 					break;
 
 				case 'H':
