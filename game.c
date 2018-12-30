@@ -20,12 +20,15 @@ const unsigned dly_tab[] = {
 
 void game_fillRand(void *w){
 	world_t (*world) = w;
-	for_cells *(world->cells+i) = rand() < RAND_MAX / 5 ? 1 : 0;
-	}
+
+	for(int i=0; i<(world->w * world->h); i++)
+		*(world->cells+i) = rand() < RAND_MAX / 5 ? 1 : 0;	//20% sanca zivota v novej bunke (1/5)
+}
 
 void game_fillMan(void *w){
 	world_t (*world) = w;
-	for_cells *(world->cells+i) = 0;
+	for(int i=0; i<(world->w * world->h); i++)
+		*(world->cells+i) = 0;								//vytvor prazdny svet, potom spusti editor
 	gui_drawWorld(world);
 	gui_edit(world);
 }
@@ -36,19 +39,23 @@ void game_evolve(void *w){
 
 	int i=0;
 	char old[world->h][world->w];
-	for_yx old[y][x] = *(world->cells + i++);
+
+	for(int y = 0; y < world->h; y++)
+		for(int x = 0; x < world->w; x++)
+			old[y][x] = *(world->cells + i++);
 
 
-	for_y for_x{
-		int n = 0;
-		for (int y1 = y - 1; y1 <= y + 1; y1++)
-			for (int x1 = x - 1; x1 <= x + 1; x1++)
-				if (old[(y1 + world->h) % world->h][(x1 + world->w) % world->w])
-					n++;
-
-		if (old[y][x]) n--;
-		*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
-	}
+	for(int y = 0; y < world->h; y++)
+		for(int x = 0; x < world->w; x++){
+			int n = 0;
+			for (int y1 = y - 1; y1 <= y + 1; y1++)
+				for (int x1 = x - 1; x1 <= x + 1; x1++)
+					if (old[(y1 + world->h) % world->h][(x1 + world->w) % world->w])
+						n++;
+	
+			if (old[y][x]) n--;
+			*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
+		}
 	world->generation++;
 }
 
@@ -74,7 +81,7 @@ void game_save(void *w){
 		}
 
 	fprintf(file, "%u\n%u\n", world->w, world->h);
-	for_cells{
+	for(int i=0; i<(world->w * world->h); i++){
 		pocet++;
 		if(*(world->cells + i) != aktual){
 			fprintf(file, "%u\n", pocet);
