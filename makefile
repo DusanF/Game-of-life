@@ -11,7 +11,7 @@ clean:
 %.o: %.c
 	$(CC) -c -o $@ $<
 
-gol: main.o game.o gui.o file.o net.o
+gol: gol.o game.o gui.o file.o net.o
 	$(CC) -o $@ $^ -lncurses
 
 server: server.o
