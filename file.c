@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "defs.h"
 
 void file_save(void *w){
@@ -8,14 +9,18 @@ void file_save(void *w){
 	char *filename;
 	FILE *file;
 	char aktual=0;
-	unsigned pocet=-1;
 
 	filename = malloc(FILENAME_MAX);
 
     printf("Ulozit ako: ");
-    while(fgets(filename, FILENAME_MAX, stdin) == NULL);
+    while(fgets(filename, FILENAME_MAX-4, stdin) == NULL);
+    *(filename+strcspn(filename, "\n")) = 0;
+    
+    if(strstr(filename, ".gol") == NULL)		//prida priponu, ak uz nieje zadana
+		strcat(filename, ".gol");
 
 	file = fopen(filename, "w");
+	printf("Ukladam do \"%s\"...\n", filename);
 	free(filename);
 
 	if(file == 0){
@@ -23,17 +28,19 @@ void file_save(void *w){
 		return;
 		}
 
+	unsigned pocet = 0;
+
 	fprintf(file, "%u\n%u\n", world->w, world->h);
 	for(int i=0; i<(world->w * world->h); i++){
-		pocet++;
 		if(*(world->cells + i) != aktual){
 			fprintf(file, "%u\n", pocet);
-			pocet = 0;
+			pocet = 1;
 			aktual = *(world->cells + i);
-		}
+		} else
+			pocet++;
 	}
+	fprintf(file, "%u\n", pocet);
 	fclose(file);
-	free(filename);
 }
 
 void file_load(void *w){
@@ -47,8 +54,13 @@ void file_load(void *w){
 	filename = malloc(FILENAME_MAX);
 
     printf("Nazov suboru: ");
-    while(fgets(filename, FILENAME_MAX, stdin) == NULL);
+    while(fgets(filename, FILENAME_MAX-4, stdin) == NULL);
+    *(filename+strcspn(filename, "\n")) = 0;
 
+    if(strstr(filename, ".gol") == NULL)				//prida priponu, ak uz nieje zadana
+		strcat(filename, ".gol");
+
+	printf("Otvaram \"%s\"...\n", filename);
 	file = fopen(filename, "r");
 	free(filename);
 	if(file == 0){
