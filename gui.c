@@ -78,8 +78,10 @@ void gui_drawEditHelp(){
 
 void gui_edit(void *w){
 	world_t (*world) = w;
+
 	int ch=0, x=0, y=0;
 
+	world->state = GAME_STATE_EDIT;
 	gui_drawStat(world);
 
 	move(0,0);

@@ -8,6 +8,7 @@
 #include "defs.h"
 #include <pwd.h>
 
+
 int net_connect(int *sck, int port, char *adr) {
 	struct sockaddr_in serv_addr;
 
@@ -44,14 +45,11 @@ void net_save(void *w){
 	world_t (*world) = w;
 
 	char addr[16];
-	int port;
 	int socket;
 
 	printf("Zadaj IP adresu servera: ");
 	scanf("%s", addr);
-	printf("Zadaj cielovy port: ");
-	scanf("%d", &port);
-	if(net_connect(&socket, port, addr) != 1){
+	if(net_connect(&socket, PORT, addr) != 1){
 		sleep(2);
 		return;
 	}

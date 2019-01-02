@@ -29,6 +29,7 @@ void game_fillRand(void *w){
 
 void game_fillMan(void *w){
 	world_t (*world) = w;
+
 	for(int i=0; i<(world->w * world->h); i++)
 		*(world->cells+i) = 0;								//vytvor prazdny svet, potom spusti editor
 	gui_drawWorld(world);
@@ -64,7 +65,7 @@ void game_evolve(void *w){
 void game_save(void *w){
 	gui_pause();
 
-	char vstup;
+	char vstup = ' ';
 	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
 	scanf("%c", &vstup);
 	
@@ -76,45 +77,7 @@ void game_save(void *w){
 }
 
 void game_load(void *w){
-	world_t (*world) = w;
-
-	char *filename;
-	FILE *file;
-	char aktual=0;
-	unsigned pocet, pos=0;
-	
-	filename = malloc(FILENAME_MAX);
-
-	gui_pause();
-    printf("Nazov suboru: ");
-    scanf("%s", filename);
-    gui_resume();
-
-	file = fopen(filename, "r");
-	if(file == 0){
-		perror("Chyba pri otvarani suboru");
-		return;
-		}
-
-	fscanf(file, "%u", &(world->w));
-	fscanf(file, "%u", &(world->h));
-	world->cells = realloc(world->cells, world->h * world->w * sizeof(char));
-
-	while(fscanf(file, "%u", &pocet) != EOF){
-		while(pocet--){
-			*(world->cells+pos) = aktual;
-			pos++;
-		}
-		aktual = aktual ? 0 : 1;
-	}
-	while(pos < world->h * world->w){
-		*(world->cells+pos) = aktual;
-		pos++;
-	}
-	world->generation = 0;
-
-	fclose(file);
-	free(filename);
+	file_load(w);
 }
 
 void game_runner(void *w){
@@ -156,7 +119,6 @@ void game_runner(void *w){
 					break;
 
 				case 'E':
-					world->state = GAME_STATE_EDIT;
 					gui_edit(world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);
@@ -166,12 +128,14 @@ void game_runner(void *w){
 				case '>':
 					if(rychlost < 8)
 						rychlost++;
+					world->state = GAME_STATE_RUN;
 					break;
 
 				case '-':
 				case '<':
 					if(rychlost > 0)
 						rychlost--;
+					world->state = GAME_STATE_RUN;
 					break;
 
 				case '0':
@@ -179,8 +143,10 @@ void game_runner(void *w){
 					break;
 
 				default:
-					if(ch>='1' && ch<='9')
+					if(ch>='1' && ch<='9'){
 						rychlost = ch - '1';
+						world->state = GAME_STATE_RUN;
+					}
 					break;
 			}
 		}

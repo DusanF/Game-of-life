@@ -33,3 +33,45 @@ void file_save(void *w){
 	fclose(file);
 	free(filename);
 }
+
+void file_load(void *w){
+	world_t (*world) = w;
+
+	char *filename;
+	FILE *file;
+	char aktual=0;
+	unsigned pocet, pos=0;
+	
+	filename = malloc(FILENAME_MAX);
+
+	gui_pause();
+    printf("Nazov suboru: ");
+    while(fgets(filename, FILENAME_MAX, stdin) == NULL);
+    gui_resume();
+
+	file = fopen(filename, "r");
+	if(file == 0){
+		perror("Chyba pri otvarani suboru");
+		return;
+		}
+
+	fscanf(file, "%u", &(world->w));
+	fscanf(file, "%u", &(world->h));
+	world->cells = realloc(world->cells, world->h * world->w * sizeof(char));
+
+	while(fscanf(file, "%u", &pocet) != EOF){
+		while(pocet--){
+			*(world->cells+pos) = aktual;
+			pos++;
+		}
+		aktual = aktual ? 0 : 1;
+	}
+	while(pos < world->h * world->w){
+		*(world->cells+pos) = aktual;
+		pos++;
+	}
+	world->generation = 0;
+
+	fclose(file);
+	free(filename);
+}

@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "defs.h"
 
-#define PORT 1234
+#define PORT 12345
 
 
 
