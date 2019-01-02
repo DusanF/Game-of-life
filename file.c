@@ -13,9 +13,11 @@ void file_save(void *w){
 	filename = malloc(FILENAME_MAX);
 
     printf("Ulozit ako: ");
-    scanf("%s", filename);
+    while(fgets(filename, FILENAME_MAX, stdin) == NULL);
 
 	file = fopen(filename, "w");
+	free(filename);
+
 	if(file == 0){
 		perror("Chyba pri vytvarani suboru");
 		return;
@@ -44,12 +46,11 @@ void file_load(void *w){
 	
 	filename = malloc(FILENAME_MAX);
 
-	gui_pause();
     printf("Nazov suboru: ");
     while(fgets(filename, FILENAME_MAX, stdin) == NULL);
-    gui_resume();
 
 	file = fopen(filename, "r");
+	free(filename);
 	if(file == 0){
 		perror("Chyba pri otvarani suboru");
 		return;
@@ -73,5 +74,4 @@ void file_load(void *w){
 	world->generation = 0;
 
 	fclose(file);
-	free(filename);
 }

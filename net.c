@@ -44,17 +44,22 @@ void printBuff(char* buff, unsigned size){
 void net_save(void *w){
 	world_t (*world) = w;
 
-	char addr[16];
+	char addr[18];
 	int socket;
 
-	printf("Zadaj IP adresu servera: ");
-	scanf("%s", addr);
+	printf("Zadaj IP adresu servera [localhost] : ");
+	fgets(addr, 18, stdin);
+	addr[strcspn(addr, "\n")] = 0;
+	if(!addr[0])
+		strcpy(addr, "127.0.0.1");
+
 	if(net_connect(&socket, PORT, addr) != 1){
 		sleep(2);
 		return;
 	}
+
 	printf("Pripojenie uspesne\n");
-	
+
 	char *buffer;
 	register struct passwd *pw;
 	pw = getpwuid(geteuid());
@@ -69,13 +74,16 @@ void net_save(void *w){
 		printf("Pouzivatel \"%s\" prihlaseny\n", buffer);
 	else if(odpoved == SERVER_USER_NEW)
 		printf("Vytvoreny novy pouzivatel \"%s\"\n", buffer);
-	
+
 	printf("Zadaj nazov suboru: ");
 
 	buffer = realloc(buffer, 30);
-	scanf("%s", buffer+3);
-	
+	fgets(buffer+3, 27, stdin);
+	if(*(buffer+3) == 0 || *(buffer+3) == '\n')
+		strcpy(buffer+3, "new.gol");
+
 	unsigned buffSize = strlen(buffer+3) + 3 + world->w*world->h;
+
 	*buffer = world->w;
 	*(buffer+1) = world->h;
 	*(buffer+2) = strlen(buffer+3);

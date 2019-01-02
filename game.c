@@ -65,11 +65,9 @@ void game_evolve(void *w){
 void game_save(void *w){
 	gui_pause();
 
-	char vstup = ' ';
+	char vstup[5];
 	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
-	scanf("%c", &vstup);
-	
-	if (vstup == 'S' || vstup == 's')
+	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's'))
 		net_save(w);
 	else
 		file_save(w);
@@ -77,7 +75,9 @@ void game_save(void *w){
 }
 
 void game_load(void *w){
+	gui_pause();
 	file_load(w);
+	gui_resume();
 }
 
 void game_runner(void *w){

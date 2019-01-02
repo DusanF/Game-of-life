@@ -20,22 +20,23 @@ int main(int argc, char *argv[]){
 
 	char vstup[5];
 
-	printf("Víta ťa Game Of Life (GoL)!\n\nZadaj pocet riadkov [%d] : ", DEF_H);
-	if(fgets(vstup, 5, stdin) == NULL)
-		world.h = DEF_H;
-	else{
-		world.h = atoi(vstup);
-		if (world.h < MIN_H || world.h > MAX_H)
-			world.h = DEF_H;
-	}
-
-	printf("Zadaj pocet stlpcov [%d] : ", DEF_W);
+	printf("Vitaj v Game Of Life!\nMaximalne rozmery sveta su: %dx%d\nZadaj sirku [%d] : ", MAX_W, MAX_H, DEF_W);
 	if(fgets(vstup, 5, stdin) == NULL)
 		world.w = DEF_W;
 	else{
 		world.w = atoi(vstup);
 		if (world.w < MIN_W || world.h > MAX_W)
 			world.w = DEF_W;
+	}
+
+	printf("Zadaj vysku [%d] : ", DEF_H);
+
+	if(fgets(vstup, 5, stdin) == NULL)
+		world.h = DEF_H;
+	else{
+		world.h = atoi(vstup);
+		if (world.h < MIN_H || world.h > MAX_H)
+			world.h = DEF_H;
 	}
 
 	world.cells = malloc(world.h * world.w * sizeof(char));
