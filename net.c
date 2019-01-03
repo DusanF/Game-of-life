@@ -34,21 +34,19 @@ int net_connect(int *sck, int port, char *adr) {
 	return 1;
 	}
 
-int net_login(int socket){
+int net_login(int socket, char *username){
 	char *buffer;
-	register struct passwd *pw;
-	pw = getpwuid(geteuid());
 
-	buffer = malloc(3+strlen(pw->pw_name));
+	buffer = malloc(3+strlen(username));
 
 	*buffer = SERVER_CMD_USER;
-	*(buffer+1) = (uint16_t) strlen(pw->pw_name);
-	strcpy(buffer+2, pw->pw_name);
+	*(buffer+1) = (uint16_t) strlen(username);
+	strcpy(buffer+3, username);
 	write(socket, buffer, 3+strlen(buffer+3));
 
 	free(buffer);
 
-	char reponse;
+	char response;
 	read(socket, &response, 1);
 
 	return response;
@@ -65,7 +63,7 @@ int net_setFileName(int socket, char* filename){
 
 	free(buffer);
 
-	char reponse;
+	char response;
 	read(socket, &response, 1);
 
 	return response;
@@ -101,7 +99,7 @@ int net_sendWorld(int socket, void *w){
 
 	free(buffer);
 
-	char reponse;
+	char response;
 	read(socket, &response, 1);
 
 	return response;
@@ -124,15 +122,18 @@ void net_save(void *w){
 	printf("Pripojenie uspesne\n");
 
 
-	char ret = net_login(socket);							//prihlasenie na server
+	register struct passwd *pw;
+	pw = getpwuid(geteuid());
+
+	char ret = net_login(socket, pw->pw_name);							//prihlasenie na server
 	if(ret == SERVER_RESP_OK)
-		printf("Pouzivatel \"%s\" prihlaseny\n", buffer);
+		printf("Pouzivatel \"%s\" prihlaseny\n", pw->pw_name);
 	else if(ret == SERVER_RESP_NEW)
-		printf("Vytvoreny novy pouzivatel \"%s\"\n", buffer);
+		printf("Vytvoreny novy pouzivatel \"%s\"\n", pw->pw_name);
 
 
 	printf("Zadaj nazov suboru: ");							//nazov suboru
-	char filename = malloc(FILENAME_MAX);
+	char *filename = malloc(FILENAME_MAX);
 	fgets(filename, FILENAME_MAX, stdin);
 	if(*(filename) == 0 || *(filename) == '\n')
 		strcpy(filename, "new_save");
@@ -146,7 +147,7 @@ void net_save(void *w){
 			printf("Chyba pri vytvarani suboru\n");
 			return;
 			break;
-		case SERVER_RESP_OK:
+		case SERVER_RESP_USED:
 			printf("Subor uz existuje, prepisujem!\n");
 			break;
 		default:
