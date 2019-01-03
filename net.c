@@ -10,6 +10,14 @@
 #include "defs.h"
 
 
+void printArray(char* name, void* array, unsigned size){
+	char (*arr) = array;
+	printf("\n");
+	for(unsigned i=0; i<size; i++)
+		printf("%s[%d]: 0x%02X = %3d = \'%c\'\n", name, i, *(arr+i), *(arr+i), *(arr+i));
+}
+
+
 int net_connect(int *sck, int port, char *adr) {
 	struct sockaddr_in serv_addr;
 
@@ -41,7 +49,8 @@ int net_login(int socket, char *username){
 
 	*buffer = SERVER_CMD_USER;
 	*(buffer+1) = (uint16_t) strlen(username);
-	strcpy(buffer+3, username);
+	memcpy(buffer+3, username, strlen(username));
+
 	write(socket, buffer, 3+strlen(buffer+3));
 
 	free(buffer);
@@ -96,6 +105,7 @@ int net_sendWorld(int socket, void *w){
 	*(buffer + 1) = (uint16_t) (buff_ptr - 3);				//pocet zmien x2 - vysledna velkost sveta po "komprimacii"
 	
 	write(socket, buffer, buff_ptr + 2);
+	printArray("data", buffer, buff_ptr + 2);
 
 	free(buffer);
 
@@ -125,7 +135,7 @@ void net_save(void *w){
 	register struct passwd *pw;
 	pw = getpwuid(geteuid());
 
-	char ret = net_login(socket, pw->pw_name);							//prihlasenie na server
+	char ret = net_login(socket, pw->pw_name);				//prihlasenie na server
 	if(ret == SERVER_RESP_OK)
 		printf("Pouzivatel \"%s\" prihlaseny\n", pw->pw_name);
 	else if(ret == SERVER_RESP_NEW)
@@ -137,6 +147,7 @@ void net_save(void *w){
 	fgets(filename, FILENAME_MAX, stdin);
 	if(*(filename) == 0 || *(filename) == '\n')
 		strcpy(filename, "new_save");
+	filename[strcspn(filename, "\n")] = 0;
 
 	ret = net_setFileName(socket, filename);
 	switch(ret){
@@ -162,4 +173,5 @@ void net_save(void *w){
 		printf("Ukladanie uspesne\n");
 	else
 		printf("Chyba pri ukladani\n");
+	close(socket);
 }

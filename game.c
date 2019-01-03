@@ -66,9 +66,12 @@ void game_save(void *w){
 	gui_pause();
 
 	char vstup[5];
+	system("clear");
 	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
-	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's'))
+	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's')){
 		net_save(w);
+		sleep(2);
+	}
 	else
 		file_save(w);
 	gui_resume();

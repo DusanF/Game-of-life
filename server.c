@@ -6,10 +6,49 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "defs.h"
 
-#define PORT 12345
+const char* msg_type[] = {
+	"Save",
+	"Load",
+	"User",
+	"Filename"
+};
 
+typedef struct msg_info {
+	char cmd;
+	uint16_t len;
+}msg_info_t;
+
+enum {
+	STAT_LOGIN_OK = 1,
+	STAT_FILE_OK = 2,
+	STAT_REWRITE = 4,
+	STAT_FILE_UNLOCKED = 8
+};
+
+
+char saveFile(char* filename, void* dat, uint16_t len){
+	char (*size) = dat;
+	uint16_t (*data) = dat+2;
+
+	FILE *file;
+
+	printf("Ukladam do: %s\n", filename);
+	file = fopen(filename, "w");
+
+	if(file == 0)
+		return SERVER_RESP_ERR;
+
+	fprintf(file, "%u\n%u\n", *size, *(size+1));
+	for(unsigned i = 0; i < len/2; i++){
+		fprintf(file, "%u\n", *(data+i));
+	}
+	fclose(file);
+
+	return SERVER_RESP_OK;
+}
 
 
 int main(int argc, char *argv[])
@@ -18,7 +57,6 @@ int main(int argc, char *argv[])
 	struct sockaddr_in address;
 	int opt = 1;
 	int addrlen = sizeof(address);
-	char *buffer;
 
 	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
 		perror("socket failed");
@@ -47,70 +85,97 @@ int main(int argc, char *argv[])
 	}
 	printf("Pripojene\n");
 
+
+	msg_info_t msg;
+	char *username;
+	char *filename;
+	char *buffer;
 	char response;
-	unsigned w, h;
-	char* filename;
-	char* username;
-	char* cells;
-
-	buffer = malloc(31);
-	recv(new_socket, buffer, 30, 0);
-	buffer[30] = 0;
-
-	username = malloc(strlen(buffer));
-	strcpy(username, buffer);
-
+	char status = 0;
 	struct stat st = {0};
-	if (stat(username, &st) == -1) {
-		mkdir(username, 0700);
-		response = SERVER_USER_NEW;
+
+	while(1){
+		response = SERVER_RESP_ERR;
+		read(new_socket, &msg.cmd, 1);
+		read(new_socket, &msg.len, 2);
+		printf("\n%s\n", msg_type[msg.cmd]);
+		printf("dlzka: %d\n", msg.len);
+
+		switch(msg.cmd){
+			case SERVER_CMD_USER:
+				username = malloc(msg.len + 1);
+				read(new_socket, username, msg.len);
+				*(username + msg.len) = 0;
+				printf("Pouzivatel: %s\n", username);
+
+				char *dirname = malloc(7 + strlen(username));
+				strcpy(dirname, "saves/");
+				strcat(dirname, username);
+				if (stat(dirname, &st) == -1) {
+					mkdir(dirname, 0700);
+					response = SERVER_RESP_NEW;
+				}else
+					response = SERVER_RESP_OK;
+				free(dirname);
+				status |= STAT_LOGIN_OK;
+				break;
+
+
+			case SERVER_CMD_FILENAME:
+				if(!(status & STAT_LOGIN_OK)){						//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
+					filename = malloc(msg.len);
+					read(new_socket, filename, msg.len);
+					free(filename);
+					break;
+				}
+				buffer = malloc(1+msg.len);
+				read(new_socket, buffer, msg.len);
+				*(buffer + msg.len) = 0;
+
+				filename = malloc(12 + msg.len + strlen(username));
+				strcpy(filename, "saves/");
+				strcat(filename, username);
+				strcat(filename, "/");
+				strcat(filename, buffer);
+				strcat(filename, ".gol");
+				status |= STAT_FILE_OK;
+
+				printf("Subor: %s\n", filename);
+
+				if (stat(filename, &st) == -1){
+					response = SERVER_RESP_OK;
+					status |= STAT_FILE_UNLOCKED;
+				}else
+					response = SERVER_RESP_USED;
+				break;
+
+
+			case SERVER_CMD_SAVE:
+				buffer = malloc(2 + msg.len);
+				unsigned act_read, buffpos=0;
+
+				do{
+					act_read = read(new_socket, buffer+buffpos, (2+msg.len) - buffpos);
+					printf("precitane: %u\n", act_read);
+					buffpos += act_read;
+				} while(buffpos < (2 + msg.len));
+
+				if(!(status & STAT_FILE_UNLOCKED)){
+					printf("Subor neodomknuty, zahadzujem!\n");
+					free(buffer);
+					break;
+				}
+				printf("ukladam, velkost:%d\n", 2+msg.len);
+				response = saveFile(filename, buffer, msg.len);
+				free(filename);
+				free(username);
+				free(buffer);
+				write(new_socket, &response, 1);
+				close(new_socket);
+				return 0;
+				break;
+		}
+		write(new_socket, &response, 1);
 	}
-	else
-		response = SERVER_USER_OK;
-
-	send(new_socket, &response, 1, 0);
-
-	buffer = realloc(buffer, 3);
-	recv(new_socket, buffer, 3, 0);
-
-	w = *buffer;
-	h = *(buffer + 1);
-	unsigned allocated = *(buffer + 2);
-	buffer = realloc(buffer, allocated);
-
-	recv(new_socket, buffer, allocated, 0);
-	filename = malloc(allocated + 1);
-	memcpy(filename, buffer, allocated);
-	*(filename + allocated) = 0;
-
-	allocated = w*h;
-	buffer = realloc(buffer, allocated);
-	cells = malloc(allocated);
-
-	recv(new_socket, buffer, allocated, 0);
-	memcpy(cells, buffer, allocated);
-	free(buffer);
-
-	response = SERVER_SAVE_OK;
-	send(new_socket, &response, 1, 0);
-
-	printf("\n%s:\n", filename);
-	for(int y=0; y<h; y++){
-		printf("\n");
-		for(int x=0; x<w; x++)
-			if(*(cells+x+(y*w))){
-				putchar('{');
-				putchar('}');
-			}else{
-				putchar(' ');
-				putchar(' ');
-			}
-	}
-	printf("\n");
-
-
-	free(cells);
-	free(username);
-	free(filename);
 	return 0;
 }
