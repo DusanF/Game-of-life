@@ -56,7 +56,7 @@ void game_evolve(void *w){									//Vypocet novej generacie
 				for (int x1 = x - 1; x1 <= x + 1; x1++)
 					if (old[(y1 + world->h) % world->h][(x1 + world->w) % world->w])
 						n++;
-	
+
 			if (old[y][x]) n--;
 			*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
 		}
@@ -100,7 +100,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 		ch = getch();
 		if(ch>0){
 			switch(toupper(ch)){
-				case 'P':						//Pozastavenie / pokracovanie
+				case 'P':									//Pozastavenie / pokracovanie
 				case ' ':
 					if(world->state == GAME_STATE_RUN){
 						world->state = GAME_STATE_PAUSE;
@@ -109,11 +109,11 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 						world->state = GAME_STATE_RUN;
 					break;
 
-				case 'S':						//Ulozenie
+				case 'S':									//Ulozenie
 					game_save(world);
 					break;
 
-				case 'L':						//Nacitanie
+				case 'L':									//Nacitanie
 					world->state = GAME_STATE_PAUSE;
 					game_load(world);
 					gui_clr();
@@ -122,17 +122,17 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 					hist_clear(&history);
 					break;
 
-				case 'H':						//Zobrazenie helpu
+				case 'H':									//Zobrazenie helpu
 					gui_drawGameHelp();
 					break;
 
-				case 'E':						//Spustenie editora
+				case 'E':									//Spustenie editora
 					gui_edit(world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);
 					break;
 
-				case 263:						//Krok spat (backspace)
+				case 263:									//Krok spat (backspace)
 					hist_pop(&history, world);
 					world->state = GAME_STATE_PAUSE;
 					gui_clr();
@@ -140,26 +140,26 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 					gui_drawStat(world);
 					break;
 
-				case '+':						//Zrychlenie
+				case '+':									//Zrychlenie
 				case '>':
 					if(rychlost < 8)
 						rychlost++;
 					world->state = GAME_STATE_RUN;
 					break;
 
-				case '-':						//Spomalenie
+				case '-':									//Spomalenie
 				case '<':
 					if(rychlost > 0)
 						rychlost--;
 					world->state = GAME_STATE_RUN;
 					break;
 
-				case '0':						//Jeden krok
+				case '0':									//Jeden krok
 					world->state = GAME_STATE_STEP;
 					break;
 
 				default:
-					if(ch>='1' && ch<='9'){		//Zvolenie rychlosti
+					if(ch>='1' && ch<='9'){					//Zvolenie rychlosti
 						rychlost = ch - '1';
 						world->state = GAME_STATE_RUN;
 					}
@@ -167,7 +167,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 			}
 		}
 		if(world->state == GAME_STATE_RUN || world->state == GAME_STATE_STEP) {	//Nova generacia iba ak je simulacia spustena / jeden krok
-			hist_push(&history, world);			//Aktualna generacia sa ulozi do historie, az potom sa vygeneruje nova
+			hist_push(&history, world);						//Aktualna generacia sa ulozi do historie, az potom sa vygeneruje nova
 			game_evolve(world);
 			gui_drawWorld(world);
 			gui_drawStat(world);
@@ -178,6 +178,6 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 		}else
 			usleep(dly_tab[rychlost]);						//Spomalenie zobrazovania podla zvolenej rychlosti
 	}
-	hist_clear(&history);
+	hist_clear(&history);									//Po skonceni je potrebne vycistit historiu (dealokovat)
 
 }

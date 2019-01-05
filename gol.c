@@ -39,7 +39,7 @@ int main(int argc, char *argv[]){
 			world.h = DEF_H;
 	}
 
-	world.cells = malloc(world.h * world.w * sizeof(char));
+	world.cells = malloc(world.h * world.w * sizeof(char));	//Rozmery su uz zname, svet sa moze alokovat
 
 	printf("Generovat nahodne? [Y/n]: ");
 	if(fgets(vstup, 5, stdin) == NULL){
@@ -53,8 +53,9 @@ int main(int argc, char *argv[]){
 			game_fillRand(&world);
 	}
 
-	gui_drawWorld(&world);
-	game_runner(&world);
+	gui_drawWorld(&world);					//Vygenerovany svet sa vykresli
+
+	game_runner(&world);					//Spustenie simulacie
 
 	gui_end();
 	system("clear");

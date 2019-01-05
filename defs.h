@@ -29,16 +29,16 @@ enum {														//mozne poziadavky na server
 
 typedef struct{												//na uchovavanie niekolko poslednych generacii
 	char* cells[HIST_SIZE];
-	unsigned short hist_pos;		//index posledneho platneho zaznamu v historii
-	unsigned short hist_avail;		//pocet dostupnych zaznamov
+	unsigned short hist_pos;								//index posledneho platneho zaznamu v historii
+	unsigned short hist_avail;								//pocet dostupnych zaznamov
 } hist_t;
 
 typedef struct{												//vlastnosti a stav aktualneho sveta
-	int w;							//rozmery sveta
+	int w;													//rozmery sveta
 	int h;
-	char* cells;					//stav buniek
-	unsigned generation;			//aktualna generacia
-	char state;						//stav simulacie (pauza, beh, ...)
+	char* cells;											//stav buniek
+	unsigned generation;									//aktualna generacia
+	char state;												//stav simulacie (pauza, beh, ...)
 } world_t;
 
 #endif

@@ -8,14 +8,14 @@
 #include "gui.h"
 
 
-const char *STAT_STR[] = {
+const char *STAT_STR[] = {									//Textova reprezentacia stavov simulacie
 	"Beh   ",
 	"Pauza ",
 	"Krok  ",
 	"Editor"
 };
 
-void gui_init(){
+void gui_init(){											//Inicializacia grafickeho rezimu
 	initscr();
 	cbreak();
 	keypad(stdscr, TRUE);
@@ -28,22 +28,22 @@ void gui_init(){
 	refresh();
 }
 
-void gui_end(){
+void gui_end(){												//Skoncenie grafickeho rezimu
 	endwin();
 	attroff(COLOR_PAIR(1));
 }
 
-void gui_pause(){
+void gui_pause(){											//Docasne prepnutie do textoveho rezimu
 	def_prog_mode();
 	endwin();
 }
 
-void gui_resume(){
+void gui_resume(){											//Navrat do grafiky
 	reset_prog_mode();
 	refresh();
 }
 
-void gui_drawGameHelp(){
+void gui_drawGameHelp(){									//Zobrazenie ovladania simulacie
 	gui_pause();
 	system("clear");
 	printf("\n       Ovladanie:\n\n");
@@ -62,7 +62,7 @@ void gui_drawGameHelp(){
 	gui_resume();
 }
 
-void gui_drawEditHelp(){
+void gui_drawEditHelp(){									//Zobrazenie ovladania editora
 	gui_pause();
 	system("clear");
 	printf("\n       Ovladanie:\n\n");
@@ -77,7 +77,7 @@ void gui_drawEditHelp(){
 }
 
 
-void gui_edit(void *w){
+void gui_edit(void *w){										//Editor stavu buniek
 	world_t (*world) = w;
 
 	int ch=0, x=0, y=0;
@@ -86,13 +86,13 @@ void gui_edit(void *w){
 	gui_drawStat(world);
 
 	move(0,0);
-	curs_set(1);
+	curs_set(1);											//Zapnutie kurzora
 	attron(COLOR_PAIR(1));
 
-	while((ch != 'E') && (ch != 'e')){
+	while((ch != 'E') && (ch != 'e')){						//Odchod z editora pomocou 'E'
 		ch = getch();
 		switch(ch){
-			case ' ':
+			case ' ':										//Medzerou sa bunka zmeni
 				if(*(world->cells+x+(y*world->w))){
 					*(world->cells+x+(y*world->w)) = 0;
 					addch(' ');
@@ -105,7 +105,7 @@ void gui_edit(void *w){
 				refresh();
 				move(y,2*x);
 				break;
-			case KEY_UP:
+			case KEY_UP:									//Ovladanie kurzora sipkami
 				if(y>0)
 					move(--y,2*x);
 				else{
@@ -137,12 +137,12 @@ void gui_edit(void *w){
 					move(y,2*x);
 					}
 				break;
-			case 'S':
+			case 'S':										//Ulozenie
 			case 's':
 				game_save(world);
 				break;
 
-			case 'L':
+			case 'L':										//Nacitanie
 			case 'l':
 				game_load(world);
 				gui_clr();
@@ -152,7 +152,7 @@ void gui_edit(void *w){
 				move(0,0);
 				break;
 
-			case 'H':
+			case 'H':										//Zobrazenie ovladania
 			case 'h':
 				gui_drawEditHelp();
 				break;
@@ -160,22 +160,22 @@ void gui_edit(void *w){
 	usleep(10000);
 	}
 	attroff(COLOR_PAIR(1));
-	curs_set(0);
+	curs_set(0);											//Vypnutie kurzora
 }
 
-void gui_clr(){
+void gui_clr(){												//Vymazanie obrazovky
 	erase();
 }
 
-void gui_drawStat(void *w){
+void gui_drawStat(void *w){									//Zobrazi stavovy riadok
 	world_t (*world) = w;
 
-	move(world->h, 0);
+	move(world->h, 0);										//presun pod plochu sveta
 	printw(" stlac H pre pomoc\n stav: %s\tgeneracia: %d", STAT_STR[world->state], world->generation);
 	refresh();
 }
 
-void gui_drawWorld(void *w){
+void gui_drawWorld(void *w){								//Zobrazenie buniek
 	world_t (*world) = w;
 
 	attron(COLOR_PAIR(1));
