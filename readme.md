@@ -4,6 +4,7 @@
 * P/space - pauza/pokracuj
 * 1-9 - rychlost simulacie
 * 0 - jeden krok
+* Backspace - krok spat
 * +/> - rychlejsie
 * -/< - pomalsie
 * S - uloz
