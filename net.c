@@ -93,16 +93,19 @@ int net_sendWorld(int socket, void *w){
 
 	for(unsigned i=0; i<(world->w * world->h); i++){
 		if(*(world->cells + i) != cell_state){
-			*(buffer + buff_ptr) = series;					//pocet rovnakych posebe iducich buniek
-			buff_ptr += 2;
+			*(buffer + buff_ptr++) = series;			//pocet rovnakych posebe iducich buniek
+			*(buffer + buff_ptr++) = series >> 8;
 			buffer = realloc(buffer, 2 + buff_ptr);
 			series = 1;
 			cell_state = *(world->cells + i);
 		} else
 			series++;
 	}
-	*(buffer + buff_ptr) = series;
-	*(buffer + 1) = (uint16_t) (buff_ptr - 3);				//pocet zmien x2 - vysledna velkost sveta po "komprimacii"
+	*(buffer + buff_ptr) = series;					//Zostavajuce bunky do konca sveta
+	*(buffer + buff_ptr + 1) = series >> 8;
+
+	*(buffer + 1) = buff_ptr - 3;				//pocet zmien x2 - vysledna velkost sveta po "komprimacii"
+	*(buffer + 2) = (buff_ptr - 3) >> 8;
 	
 	write(socket, buffer, buff_ptr + 2);
 	printArray("data", buffer, buff_ptr + 2);
