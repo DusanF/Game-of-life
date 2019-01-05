@@ -50,6 +50,7 @@ void gui_drawGameHelp(){
 	printf(" \'E\'\t\t  otvorenie editora\n");
 	printf(" \'P\' / medzera\t  pauza/pokracuj\n");
 	printf(" \'0\'\t\t  jeden krok\n");
+	printf(" Backspace\t  krok spat\n");
 	printf(" \'1\' - \'9\'\t  rychlost simulacie\n");
 	printf(" \'+\' / \'>\'\t  rychlejsie\n");
 	printf(" \'-\' / \'<\'\t  pomalsie\n");
