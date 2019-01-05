@@ -9,7 +9,10 @@
 #define MAX_W 130
 #define DEF_W 50
 
+#define HIST_SIZE 10
+
 #define PORT 12345
+
 
 enum {
 	GAME_STATE_RUN, GAME_STATE_PAUSE, GAME_STATE_STEP, GAME_STATE_EDIT
@@ -22,6 +25,13 @@ enum {
 enum {
 	SERVER_CMD_SAVE, SERVER_CMD_LOAD, SERVER_CMD_USER, SERVER_CMD_FILENAME
 };
+
+
+typedef struct{
+	char* world_hist[HIST_SIZE];
+	unsigned short hist_pos;
+	unsigned short hist_avail;
+} hist_t;
 
 typedef struct{
 	int w;
