@@ -7,8 +7,9 @@
 #include "gui.h"
 #include "net.h"
 #include "file.h"
+#include "history.h"
 
-const unsigned dly_tab[] = {
+const unsigned dly_tab[] = {								//dostupne rychlosti simulacie (dlzka jedneho kroku v us)
 	1000000,
 	700000,
 	400000,
@@ -20,14 +21,14 @@ const unsigned dly_tab[] = {
 	5000
 };
 
-void game_fillRand(void *w){
+void game_fillRand(void *w){								//Nahode naplnenie sveta
 	world_t (*world) = w;
 
 	for(int i=0; i<(world->w * world->h); i++)
 		*(world->cells+i) = rand() < RAND_MAX / 5 ? 1 : 0;	//20% sanca zivota v novej bunke (1/5)
 }
 
-void game_fillMan(void *w){
+void game_fillMan(void *w){									//Rucne naplnenie sveta
 	world_t (*world) = w;
 
 	for(int i=0; i<(world->w * world->h); i++)
@@ -36,7 +37,7 @@ void game_fillMan(void *w){
 	gui_edit(world);
 }
 
-void game_evolve(void *w){
+void game_evolve(void *w){									//Vypocet novej generacie
 	world_t (*world) = w;
 	char* new;
 
@@ -62,7 +63,7 @@ void game_evolve(void *w){
 	world->generation++;
 }
 
-void game_save(void *w){
+void game_save(void *w){									//Ukladanie aktualneho stavu do suboru / na server
 	gui_pause();
 
 	char vstup[5];
@@ -77,18 +78,21 @@ void game_save(void *w){
 	gui_resume();
 }
 
-void game_load(void *w){
+void game_load(void *w){									//Nacitanie sveta zo suboru / zo servera
 	gui_pause();
 	file_load(w);
 	gui_resume();
 }
 
-void game_runner(void *w){
+void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesnice a zobrazovanie stavu
 	world_t (*world) = w;
+	hist_t history;
 
-	world->state = GAME_STATE_PAUSE;
 	unsigned short rychlost = 4;
 	int ch=0;
+
+	world->state = GAME_STATE_PAUSE;
+	hist_init(&history);
 
 	gui_drawStat(world);
 
@@ -96,7 +100,7 @@ void game_runner(void *w){
 		ch = getch();
 		if(ch>0){
 			switch(toupper(ch)){
-				case 'P':
+				case 'P':						//Pozastavenie / pokracovanie
 				case ' ':
 					if(world->state == GAME_STATE_RUN){
 						world->state = GAME_STATE_PAUSE;
@@ -105,11 +109,11 @@ void game_runner(void *w){
 						world->state = GAME_STATE_RUN;
 					break;
 
-				case 'S':
+				case 'S':						//Ulozenie
 					game_save(world);
 					break;
 
-				case 'L':
+				case 'L':						//Nacitanie
 					world->state = GAME_STATE_PAUSE;
 					game_load(world);
 					gui_clr();
@@ -117,52 +121,61 @@ void game_runner(void *w){
 					gui_drawStat(world);
 					break;
 
-				case 'H':
+				case 'H':						//Zobrazenie helpu
 					gui_drawGameHelp();
 					break;
 
-				case 'E':
+				case 'E':						//Spustenie editora
 					gui_edit(world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);
 					break;
 
-				case '+':
+				case 263:						//Krok spat (backspace)
+					hist_pop(&history, world);
+					world->state = GAME_STATE_PAUSE;
+					gui_clr();
+					gui_drawWorld(world);
+					gui_drawStat(world);
+					break;
+
+				case '+':						//Zrychlenie
 				case '>':
 					if(rychlost < 8)
 						rychlost++;
 					world->state = GAME_STATE_RUN;
 					break;
 
-				case '-':
+				case '-':						//Spomalenie
 				case '<':
 					if(rychlost > 0)
 						rychlost--;
 					world->state = GAME_STATE_RUN;
 					break;
 
-				case '0':
+				case '0':						//Jeden krok
 					world->state = GAME_STATE_STEP;
 					break;
 
 				default:
-					if(ch>='1' && ch<='9'){
+					if(ch>='1' && ch<='9'){		//Zvolenie rychlosti
 						rychlost = ch - '1';
 						world->state = GAME_STATE_RUN;
 					}
 					break;
 			}
 		}
-		if(world->state == GAME_STATE_RUN || world->state == GAME_STATE_STEP) {
+		if(world->state == GAME_STATE_RUN || world->state == GAME_STATE_STEP) {	//Nova generacia iba ak je simulacia spustena / jeden krok
+			hist_push(&history, world);			//Aktualna generacia sa ulozi do historie, az potom sa vygeneruje nova
 			game_evolve(world);
 			gui_drawWorld(world);
 			gui_drawStat(world);
 		}
-		if(world->state == GAME_STATE_STEP){
+		if(world->state == GAME_STATE_STEP){				//Po vykonani jedneho kroku simulaciu pozastav
 			world->state = GAME_STATE_PAUSE;
 			gui_drawStat(world);
 		}else
-			usleep(dly_tab[rychlost]);
+			usleep(dly_tab[rychlost]);						//Spomalenie zobrazovania podla zvolenej rychlosti
 	}
 
 }
