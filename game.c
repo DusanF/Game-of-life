@@ -119,6 +119,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 					gui_clr();
 					gui_drawWorld(world);
 					gui_drawStat(world);
+					hist_clear(&history);
 					break;
 
 				case 'H':						//Zobrazenie helpu
@@ -177,5 +178,6 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 		}else
 			usleep(dly_tab[rychlost]);						//Spomalenie zobrazovania podla zvolenej rychlosti
 	}
+	hist_clear(&history);
 
 }

@@ -140,6 +140,8 @@ int main(int argc, char *argv[])
 				strcat(filename, ".gol");
 				status |= STAT_FILE_OK;
 
+				free(buffer);
+
 				printf("Subor: %s\n", filename);
 
 				if (stat(filename, &st) == -1){

@@ -153,6 +153,7 @@ void net_save(void *w){
 	filename[strcspn(filename, "\n")] = 0;
 
 	ret = net_setFileName(socket, filename);
+	free(filename);
 	switch(ret){
 		case SERVER_RESP_OK:
 			printf("Vzdialeny subor vytvoreny\n");
