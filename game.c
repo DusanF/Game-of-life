@@ -5,6 +5,8 @@
 #include <ncurses.h>
 #include "defs.h"
 #include "gui.h"
+#include "net.h"
+#include "file.h"
 
 const unsigned dly_tab[] = {
 	1000000,
@@ -27,6 +29,7 @@ void game_fillRand(void *w){
 
 void game_fillMan(void *w){
 	world_t (*world) = w;
+
 	for(int i=0; i<(world->w * world->h); i++)
 		*(world->cells+i) = 0;								//vytvor prazdny svet, potom spusti editor
 	gui_drawWorld(world);
@@ -60,79 +63,24 @@ void game_evolve(void *w){
 }
 
 void game_save(void *w){
-	world_t (*world) = w;
-
-	char *filename;
-	FILE *file;
-	char aktual=0;
-	unsigned pocet=-1;
-	
-	filename = malloc(FILENAME_MAX);
-
 	gui_pause();
-    printf("Ulozit ako: ");
-    scanf("%s", filename);
-    gui_resume();
 
-	file = fopen(filename, "w");
-	if(file == 0){
-		perror("Chyba pri vytvarani suboru");
-		return;
-		}
-
-	fprintf(file, "%u\n%u\n", world->w, world->h);
-	for(int i=0; i<(world->w * world->h); i++){
-		pocet++;
-		if(*(world->cells + i) != aktual){
-			fprintf(file, "%u\n", pocet);
-			pocet = 0;
-			aktual = *(world->cells + i);
-		}
+	char vstup[5];
+	system("clear");
+	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
+	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's')){
+		net_save(w);
+		sleep(2);
 	}
-	fclose(file);
-	free(filename);
+	else
+		file_save(w);
+	gui_resume();
 }
 
 void game_load(void *w){
-	world_t (*world) = w;
-
-	char *filename;
-	FILE *file;
-	char aktual=0;
-	unsigned pocet, pos=0;
-	
-	filename = malloc(FILENAME_MAX);
-
 	gui_pause();
-    printf("Nazov suboru: ");
-    scanf("%s", filename);
-    gui_resume();
-
-	file = fopen(filename, "r");
-	if(file == 0){
-		perror("Chyba pri otvarani suboru");
-		return;
-		}
-
-	fscanf(file, "%u", &(world->w));
-	fscanf(file, "%u", &(world->h));
-	world->cells = realloc(world->cells, world->h * world->w * sizeof(char));
-
-	while(fscanf(file, "%u", &pocet) != EOF){
-		while(pocet--){
-			*(world->cells+pos) = aktual;
-			pos++;
-		}
-		aktual = aktual ? 0 : 1;
-	}
-	while(pos < world->h * world->w){
-		*(world->cells+pos) = aktual;
-		pos++;
-	}
-	world->generation = 0;
-
-	fclose(file);
-	free(filename);
+	file_load(w);
+	gui_resume();
 }
 
 void game_runner(void *w){
@@ -174,7 +122,6 @@ void game_runner(void *w){
 					break;
 
 				case 'E':
-					world->state = GAME_STATE_EDIT;
 					gui_edit(world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);
@@ -184,12 +131,14 @@ void game_runner(void *w){
 				case '>':
 					if(rychlost < 8)
 						rychlost++;
+					world->state = GAME_STATE_RUN;
 					break;
 
 				case '-':
 				case '<':
 					if(rychlost > 0)
 						rychlost--;
+					world->state = GAME_STATE_RUN;
 					break;
 
 				case '0':
@@ -197,8 +146,10 @@ void game_runner(void *w){
 					break;
 
 				default:
-					if(ch>='1' && ch<='9')
+					if(ch>='1' && ch<='9'){
 						rychlost = ch - '1';
+						world->state = GAME_STATE_RUN;
+					}
 					break;
 			}
 		}
