@@ -3,5 +3,6 @@
 
 int net_connect(int *, int ,char *);
 void net_save(void *);
+void net_load(void *);
 
 #endif

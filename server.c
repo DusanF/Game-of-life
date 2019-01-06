@@ -16,10 +16,6 @@ const char* msg_type[] = {
 	"Filename"
 };
 
-typedef struct msg_info {
-	char cmd;
-	uint16_t len;
-}msg_info_t;
 
 enum {
 	STAT_LOGIN_OK = 1,
@@ -27,6 +23,15 @@ enum {
 	STAT_REWRITE = 4,
 	STAT_FILE_UNLOCKED = 8
 };
+
+
+void printArray(char* name, void* array, unsigned size){
+	char (*arr) = array;
+	printf("\n");
+	for(unsigned i=0; i<size; i++)
+		printf("%s[%d]: 0x%02X = %3d = \'%c\'\n", name, i, *(arr+i), *(arr+i), *(arr+i));
+}
+
 
 
 char saveFile(char* filename, void* dat, uint16_t len){
@@ -50,6 +55,40 @@ char saveFile(char* filename, void* dat, uint16_t len){
 	return SERVER_RESP_OK;
 }
 
+char *loadFile(char *filename, unsigned *size){
+	FILE *file;
+
+	printf("Nacitavam z \"%s\"\n", filename);
+	file = fopen(filename, "r");
+	if(file == 0){
+		printf("Subor sa nepodarilo otvorit!\n");
+		return NULL;
+	}
+
+	unsigned readVal;
+	char *buffer = malloc(4);
+
+	fscanf(file, "%u", &readVal);
+	*(buffer + 2) = readVal;
+	fscanf(file, "%u", &readVal);
+	*(buffer + 3) = readVal;
+
+	unsigned i=4;
+
+	while(fscanf(file, "%u", &readVal) != EOF){
+		buffer = realloc(buffer, i+2);
+		*(buffer + i++) = readVal;
+		*(buffer + i++) = readVal >> 8;
+	}
+
+	fclose(file);
+
+	*size = i;
+	*buffer = i-2;
+	*(buffer+1) = (i-2) >> 8;
+
+	return buffer;
+}
 
 int main(int argc, char *argv[])
 {
@@ -86,7 +125,8 @@ int main(int argc, char *argv[])
 	printf("Pripojene\n");
 
 
-	msg_info_t msg;
+	char cmd;
+	uint16_t len;
 	char *username;
 	char *filename;
 	char *buffer;
@@ -96,16 +136,15 @@ int main(int argc, char *argv[])
 
 	while(1){
 		response = SERVER_RESP_ERR;
-		read(new_socket, &msg.cmd, 1);
-		read(new_socket, &msg.len, 2);
-		printf("\n%s\n", msg_type[msg.cmd]);
-		printf("dlzka: %d\n", msg.len);
+		read(new_socket, &cmd, 1);
+		printf("\n%s\n", msg_type[cmd]);
 
-		switch(msg.cmd){
+		switch(cmd){
 			case SERVER_CMD_USER:
-				username = malloc(msg.len + 1);
-				read(new_socket, username, msg.len);
-				*(username + msg.len) = 0;
+				read(new_socket, &len, 2);
+				username = malloc(len + 1);
+				read(new_socket, username, len);
+				*(username + len) = 0;
 				printf("Pouzivatel: %s\n", username);
 
 				char *dirname = malloc(7 + strlen(username));
@@ -118,21 +157,24 @@ int main(int argc, char *argv[])
 					response = SERVER_RESP_OK;
 				free(dirname);
 				status |= STAT_LOGIN_OK;
+
+				write(new_socket, &response, 1);
 				break;
 
 
 			case SERVER_CMD_FILENAME:
+				read(new_socket, &len, 2);
 				if(!(status & STAT_LOGIN_OK)){						//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
-					filename = malloc(msg.len);
-					read(new_socket, filename, msg.len);
+					filename = malloc(len);
+					read(new_socket, filename, len);
 					free(filename);
 					break;
 				}
-				buffer = malloc(1+msg.len);
-				read(new_socket, buffer, msg.len);
-				*(buffer + msg.len) = 0;
+				buffer = malloc(1+len);
+				read(new_socket, buffer, len);
+				*(buffer + len) = 0;
 
-				filename = malloc(12 + msg.len + strlen(username));
+				filename = malloc(12 + len + strlen(username));
 				strcpy(filename, "saves/");
 				strcat(filename, username);
 				strcat(filename, "/");
@@ -145,30 +187,34 @@ int main(int argc, char *argv[])
 				printf("Subor: %s\n", filename);
 
 				if (stat(filename, &st) == -1){
-					response = SERVER_RESP_OK;
+					response = SERVER_RESP_FILE_NONEXISTS;
 					status |= STAT_FILE_UNLOCKED;
 				}else
-					response = SERVER_RESP_USED;
+					response = SERVER_RESP_FILE_EXISTS;
+
+				write(new_socket, &response, 1);
 				break;
 
 
 			case SERVER_CMD_SAVE:
-				buffer = malloc(2 + msg.len);
+				read(new_socket, &len, 2);
+				buffer = malloc(2 + len);
 				unsigned act_read, buffpos=0;
 
 				do{
-					act_read = read(new_socket, buffer+buffpos, (2+msg.len) - buffpos);
+					act_read = read(new_socket, buffer+buffpos, (2+len) - buffpos);
 					printf("precitane: %u\n", act_read);
 					buffpos += act_read;
-				} while(buffpos < (2 + msg.len));
+				} while(buffpos < (2 + len));
 
 				if(!(status & STAT_FILE_UNLOCKED)){
 					printf("Subor neodomknuty, zahadzujem!\n");
 					free(buffer);
+					write(new_socket, &response, 1);
 					break;
 				}
-				printf("ukladam, velkost:%d\n", 2+msg.len);
-				response = saveFile(filename, buffer, msg.len);
+				printf("ukladam\n");
+				response = saveFile(filename, buffer, len);
 				free(filename);
 				free(username);
 				free(buffer);
@@ -176,8 +222,28 @@ int main(int argc, char *argv[])
 				close(new_socket);
 				return 0;
 				break;
+
+			case SERVER_CMD_LOAD:
+				if(status != (STAT_LOGIN_OK | STAT_FILE_OK)){
+					printf("Chyba nacitavania zo suboru\n");
+					write(new_socket, &response, 1);
+				}else{
+					response = SERVER_RESP_OK;
+					write(new_socket, &response, 1);
+
+					unsigned size;
+					buffer = loadFile(filename, &size);
+
+					write(new_socket, buffer, size);
+
+					free(filename);
+					free(username);
+					free(buffer);
+					close(new_socket);
+					return 0;
+				}
+				break;
 		}
-		write(new_socket, &response, 1);
 	}
 	return 0;
 }

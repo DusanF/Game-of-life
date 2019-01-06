@@ -11,8 +11,8 @@ clean:
 %.o: %.c
 	$(CC) -c -o $@ $<
 
-gol: gol.o history.o game.o gui.o file.o net.o
-	$(CC) -o $@ $^ -lncurses
+gol: gol.o history.o game.o gui.o file.o net.o generator.h
+	$(CC) -o $@ $^ -lncurses -lpthread
 
 server: server.o
 	$(CC) -o $@ $^

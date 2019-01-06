@@ -10,14 +10,6 @@
 #include "defs.h"
 
 
-void printArray(char* name, void* array, unsigned size){
-	char (*arr) = array;
-	printf("\n");
-	for(unsigned i=0; i<size; i++)
-		printf("%s[%d]: 0x%02X = %3d = \'%c\'\n", name, i, *(arr+i), *(arr+i), *(arr+i));
-}
-
-
 int net_connect(int *sck, int port, char *adr) {
 	struct sockaddr_in serv_addr;
 
@@ -108,7 +100,6 @@ int net_sendWorld(int socket, void *w){
 	*(buffer + 2) = (buff_ptr - 3) >> 8;
 	
 	write(socket, buffer, buff_ptr + 2);
-	printArray("data", buffer, buff_ptr + 2);
 
 	free(buffer);
 
@@ -116,6 +107,26 @@ int net_sendWorld(int socket, void *w){
 	read(socket, &response, 1);
 
 	return response;
+}
+
+void net_readWorld(world_t *world, unsigned char *buffer, unsigned size){
+	world->w = (unsigned char) *buffer;
+	world->h = (unsigned char) *(buffer+1);
+
+	world->cells = realloc(world->cells, world->w * world->h);
+
+	uint16_t series;
+	uint16_t pos = 0;
+	char cell_stat = 0;
+
+	for(unsigned i=2; i<size; i+=2){
+		series = (*(buffer+i+1) << 8) | *(buffer+i);
+		while(series--){
+			*(world->cells+pos) = cell_stat;
+			pos++;
+		}
+		cell_stat = cell_stat ? 0 : 1;
+	}
 }
 
 void net_save(void *w){
@@ -149,24 +160,21 @@ void net_save(void *w){
 	char *filename = malloc(FILENAME_MAX);
 	fgets(filename, FILENAME_MAX, stdin);
 	if(*(filename) == 0 || *(filename) == '\n')
-		strcpy(filename, "new_save");
+		strcpy(filename, "unnamed");
 	filename[strcspn(filename, "\n")] = 0;
 
 	ret = net_setFileName(socket, filename);
 	free(filename);
 	switch(ret){
-		case SERVER_RESP_OK:
+		case SERVER_RESP_FILE_NONEXISTS:
 			printf("Vzdialeny subor vytvoreny\n");
 			break;
-		case SERVER_RESP_ERR:
-			printf("Chyba pri vytvarani suboru\n");
-			return;
-			break;
-		case SERVER_RESP_USED:
-			printf("Subor uz existuje, prepisujem!\n");
+		case SERVER_RESP_FILE_EXISTS:
+			printf("Subor uz existuje!\n");
 			break;
 		default:
 			printf("Neznama chyba!\n");
+			close(socket);
 			return;
 			break;
 	}
@@ -177,5 +185,78 @@ void net_save(void *w){
 		printf("Ukladanie uspesne\n");
 	else
 		printf("Chyba pri ukladani\n");
+	close(socket);
+}
+
+void net_load(void *w){
+	world_t (*world) = w;
+
+	char addr[18];
+	int socket;
+
+	printf("Zadaj IP adresu servera [localhost] : ");		//pripojenie ku serveru
+	fgets(addr, 18, stdin);
+	addr[strcspn(addr, "\n")] = 0;
+	if(!addr[0])
+		strcpy(addr, "127.0.0.1");
+
+	if(net_connect(&socket, PORT, addr) != 1){
+		sleep(2);
+		return;
+	}
+	printf("Pripojenie uspesne\n");
+
+
+	register struct passwd *pw;
+	pw = getpwuid(geteuid());
+
+	char ret = net_login(socket, pw->pw_name);				//prihlasenie na server
+	if(ret == SERVER_RESP_OK)
+		printf("Pouzivatel \"%s\" prihlaseny\n", pw->pw_name);
+	else if(ret == SERVER_RESP_NEW)
+		printf("Vytvoreny novy pouzivatel \"%s\"\n", pw->pw_name);
+
+
+	printf("Zadaj nazov suboru: ");							//nazov suboru
+	char *filename = malloc(FILENAME_MAX);
+	fgets(filename, FILENAME_MAX, stdin);
+	if(*(filename) == 0 || *(filename) == '\n')
+		strcpy(filename, "unnamed");
+	filename[strcspn(filename, "\n")] = 0;
+
+	ret = net_setFileName(socket, filename);
+	free(filename);
+	switch(ret){
+		case SERVER_RESP_FILE_NONEXISTS:
+			printf("Vzdialeny subor neexistuje!\n");
+			close(socket);
+			return;
+			break;
+
+		case SERVER_RESP_FILE_EXISTS:
+			printf("Subor existuje\n");
+			break;
+	}
+	
+	char cmd = SERVER_CMD_LOAD;
+	write(socket, &cmd, 1);
+
+	read(socket, &ret, 1);
+	if(ret == SERVER_RESP_OK)
+		printf("Nacitavam\n");
+	else
+		printf("Chyba na strane servera!\n");
+
+	unsigned size=0;
+	char *buffer;
+
+	read(socket, &size, 2);
+
+	buffer = malloc(size+2);
+	read(socket, buffer, size+2);
+
+	net_readWorld(world, buffer, size);
+	free(buffer);
+
 	close(socket);
 }

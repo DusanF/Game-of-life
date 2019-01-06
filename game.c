@@ -80,7 +80,16 @@ void game_save(void *w){									//Ukladanie aktualneho stavu do suboru / na ser
 
 void game_load(void *w){									//Nacitanie sveta zo suboru / zo servera
 	gui_pause();
-	file_load(w);
+
+	char vstup[5];
+	system("clear");
+	printf("Nacitat z Lokalneho suboru alebo zo Servera? [L/s]: ");
+	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's'))
+		net_load(w);
+	else
+		file_load(w);
+
+	sleep(2);
 	gui_resume();
 }
 

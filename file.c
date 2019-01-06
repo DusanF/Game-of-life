@@ -48,8 +48,8 @@ void file_load(void *w){
 
 	char *filename;
 	FILE *file;
-	char aktual=0;
-	unsigned pocet, pos=0;
+	char cell_stat=0;
+	unsigned series, pos=0;
 	
 	filename = malloc(FILENAME_MAX);
 
@@ -70,17 +70,17 @@ void file_load(void *w){
 
 	fscanf(file, "%u", &(world->w));
 	fscanf(file, "%u", &(world->h));
-	world->cells = realloc(world->cells, world->h * world->w * sizeof(char));
+	world->cells = realloc(world->cells, world->h * world->w);
 
-	while(fscanf(file, "%u", &pocet) != EOF){
-		while(pocet--){
-			*(world->cells+pos) = aktual;
+	while(fscanf(file, "%u", &series) != EOF){
+		while(series--){
+			*(world->cells+pos) = cell_stat;
 			pos++;
 		}
-		aktual = aktual ? 0 : 1;
+		cell_stat = cell_stat ? 0 : 1;
 	}
 	while(pos < world->h * world->w){
-		*(world->cells+pos) = aktual;
+		*(world->cells+pos) = cell_stat;
 		pos++;
 	}
 	world->generation = 0;

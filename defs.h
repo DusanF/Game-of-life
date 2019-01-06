@@ -10,6 +10,7 @@
 #define DEF_W 50
 
 #define HIST_SIZE 10										//velkost historie
+#define GEN_BUFF_SIZE 5										//Max pocet generacii vypocitanych dopredu
 
 #define PORT 12345											//port pouzity pri pripajani na server
 
@@ -19,7 +20,7 @@ enum {														//mozne stavy hry
 };
 
 enum {														//odpovede od servera
-	SERVER_RESP_ERR, SERVER_RESP_OK, SERVER_RESP_NEW, SERVER_RESP_USED
+	SERVER_RESP_ERR, SERVER_RESP_OK, SERVER_RESP_NEW, SERVER_RESP_FILE_EXISTS, SERVER_RESP_FILE_NONEXISTS
 };
 
 enum {														//mozne poziadavky na server
@@ -32,6 +33,18 @@ typedef struct{												//na uchovavanie niekolko poslednych generacii
 	unsigned short hist_pos;								//index posledneho platneho zaznamu v historii
 	unsigned short hist_avail;								//pocet dostupnych zaznamov
 } hist_t;
+
+typedef struct{
+	volatile unsigned width;
+	volatile unsigned height;
+	volatile char* cells[GEN_BUFF_SIZE];
+	volatile unsigned short gen_pos;
+	volatile unsigned short read_pos;
+	pthread_t thread;
+	pthread_mutex_t mutex;
+	pthread_cond_t doRead;
+	pthread_cond_t doGenerate;
+} gen_struct_t;
 
 typedef struct{												//vlastnosti a stav aktualneho sveta
 	int w;													//rozmery sveta
