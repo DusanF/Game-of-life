@@ -62,12 +62,13 @@ void gen_init(void *gen){
 void gen_clear(void *gen){
 	gen_struct_t (*genstr) = gen;
 
-	for(unsigned i=0; i<GEN_BUFF_SIZE; i++)
-		free(genstr->cells[i]);
 
 	genstr->run_gen = 0;									//Ukoncenie generovania
 	pthread_cond_signal(&(genstr->doGenerate));				//Ak generator caka na signal, treba ho uvolnit aby mohol skoncit
 	pthread_join(genstr->thread, NULL);
+
+	for(unsigned i=0; i<GEN_BUFF_SIZE; i++)
+		free(genstr->cells[i]);
 
 	pthread_cond_destroy(&(genstr->doRead));
 	pthread_cond_destroy(&(genstr->doGenerate));

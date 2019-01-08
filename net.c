@@ -32,7 +32,7 @@ int net_connect(int *sck, int port, char *adr) {
 		return -1;
 		}
 	return 1;
-	}
+}
 
 void net_close(int socket){
 	char cmd = SERVER_CMD_STOP;
@@ -54,10 +54,12 @@ int net_login(int socket, char *username){
 	buffer = malloc(3+strlen(username));
 
 	*buffer = SERVER_CMD_USER;
-	*(buffer+1) = (uint16_t) strlen(username);
+	*(buffer+1) = strlen(username);
+	*(buffer+2) = strlen(username) >> 8;
+	
 	memcpy(buffer+3, username, strlen(username));
 
-	write(socket, buffer, 3+strlen(buffer+3));
+	write(socket, buffer, 3+strlen(username));
 
 	free(buffer);
 
@@ -72,9 +74,10 @@ int net_setFileName(int socket, char* filename){
 	buffer = malloc(3 + strlen(filename));
 
 	*buffer = SERVER_CMD_FILENAME;
-	*(buffer+1) = (uint16_t) strlen(filename);
+	*(buffer+1) = strlen(filename);
+	*(buffer+2) = strlen(filename) >> 8;
 	memcpy(buffer+3, filename, strlen(filename));
-	write(socket, buffer, 3+strlen(buffer+3));
+	write(socket, buffer, 3+strlen(filename));
 
 	free(buffer);
 
@@ -278,8 +281,11 @@ void net_load(void *w){
 	read(socket, &ret, 1);
 	if(ret == SERVER_RESP_OK)
 		printf("Nacitavam\n");
-	else
+	else{
 		printf("Chyba na strane servera!\n");
+		net_close(socket);
+		return;
+	}
 
 	unsigned size=0;
 	char *buffer;
