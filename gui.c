@@ -77,8 +77,7 @@ void gui_drawEditHelp(){									//Zobrazenie ovladania editora
 }
 
 
-void gui_edit(void *w){										//Editor stavu buniek
-	world_t (*world) = w;
+void gui_edit(world_t *world){										//Editor stavu buniek
 
 	int ch=0, x=0, y=0;
 
@@ -167,16 +166,14 @@ void gui_clr(){												//Vymazanie obrazovky
 	erase();
 }
 
-void gui_drawStat(void *w){									//Zobrazi stavovy riadok
-	world_t (*world) = w;
+void gui_drawStat(world_t *world){									//Zobrazi stavovy riadok
 
 	move(world->h, 0);										//presun pod plochu sveta
 	printw(" stlac H pre pomoc\n stav: %s\tgeneracia: %d", STAT_STR[world->state], world->generation);
 	refresh();
 }
 
-void gui_drawWorld(void *w){								//Zobrazenie buniek
-	world_t (*world) = w;
+void gui_drawWorld(world_t *world){								//Zobrazenie buniek
 
 	attron(COLOR_PAIR(1));
 	for(int y=0; y<world->h; y++){

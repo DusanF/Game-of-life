@@ -3,10 +3,7 @@
 #include "defs.h"
 
 
-unsigned hist_push(void* hist, void* wrld){					//Vlozenie stavu do historie
-	hist_t (*history) = hist;
-	world_t (*world) = wrld;
-
+unsigned hist_push(hist_t *history, world_t *world){		//Vlozenie stavu do historie
 	history->hist_pos++;
 	history->hist_pos = history->hist_pos % HIST_SIZE;
 
@@ -19,10 +16,7 @@ unsigned hist_push(void* hist, void* wrld){					//Vlozenie stavu do historie
 	return history->hist_avail;
 }
 
-unsigned hist_pop(void* hist, void* wrld){					//Navrat o jednu generaciu spat
-	hist_t (*history) = hist;
-	world_t (*world) = wrld;
-
+unsigned hist_pop(hist_t *history, world_t *world){			//Navrat o jednu generaciu spat
 	if(history->hist_avail == 0)							//Ak historia viac dozadu nesiaha, nerob nic
 		return 0;
 
@@ -38,9 +32,7 @@ unsigned hist_pop(void* hist, void* wrld){					//Navrat o jednu generaciu spat
 	return history->hist_avail;
 }
 
-void hist_clear(void* hist){								//Vycistenie historie
-	hist_t (*history) = hist;
-
+void hist_clear(hist_t* history){							//Vycistenie historie
 	history->hist_pos = HIST_SIZE - 1;
 	history->hist_avail = 0;
 
@@ -50,9 +42,7 @@ void hist_clear(void* hist){								//Vycistenie historie
 	}
 }
 
-void hist_init(void *hist){									//Inicializacia
-	hist_t (*history) = hist;
-
+void hist_init(hist_t *history){							//Inicializacia
 	history->hist_pos = HIST_SIZE - 1;
 	history->hist_avail = 0;
 

@@ -3,9 +3,7 @@
 #include <string.h>
 #include "defs.h"
 
-void file_save(void *w){
-	world_t (*world) = w;
-
+void file_save(world_t *world){
 	char *filename;
 	FILE *file;
 	char aktual=0;
@@ -43,9 +41,7 @@ void file_save(void *w){
 	fclose(file);
 }
 
-void file_load(void *w){
-	world_t (*world) = w;
-
+void file_load(world_t *world){
 	char *filename;
 	FILE *file;
 	char cell_stat=0;

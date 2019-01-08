@@ -1,12 +1,12 @@
 #ifndef _GAME_H
 #define _GAME_H
 
-void game_fillRand(void *);
-void game_fillMan(void *);
-void game_evolve(void *);
-void game_save(void *);
-void game_load(void *);
-void game_runner(void *);
+void game_fillRand(world_t *);
+void game_fillMan(world_t *);
+void game_evolve(world_t *);
+void game_save(world_t *);
+void game_load(world_t *);
+void game_runner(world_t *);
 
 
 #endif

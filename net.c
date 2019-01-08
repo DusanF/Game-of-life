@@ -87,9 +87,7 @@ int net_setFileName(int socket, char* filename){
 	return response;
 }
 
-int net_sendWorld(int socket, void *w){
-	world_t (*world) = w;
-
+int net_sendWorld(int socket, world_t *world){
 	char* buffer = malloc(7);								//minimalna mozna velkost: 1B-CMD + 1B-sirka + 1B-vyska + 2B-celkova dlzka + 2B-pocet mrtvych buniek
 
 	*buffer = SERVER_CMD_SAVE;

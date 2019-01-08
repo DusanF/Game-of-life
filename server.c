@@ -98,7 +98,7 @@ void server_srv(int socket){
 	while(1){
 		response = SERVER_RESP_ERR;
 		read(socket, &cmd, 1);
-		printf("\nCMD: %s\n", msg_type[cmd]);
+		//printf("\n# CMD: %s\n", msg_type[cmd]);
 
 		switch(cmd){
 			case SERVER_CMD_USER:
@@ -222,7 +222,7 @@ void server_srv(int socket){
 
 
 int main(int argc, char *argv[]){
-	int server_fd, new_socket, valread;
+	int server_fd, new_socket;
 	struct sockaddr_in address;
 	int opt = 1;
 	int addrlen = sizeof(address);
@@ -233,7 +233,7 @@ int main(int argc, char *argv[]){
 		mkdir("saves", 0700);
 
 	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
-		perror("socket failed");
+		perror("socket");
 		exit(EXIT_FAILURE);
 	}
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))){
@@ -245,7 +245,7 @@ int main(int argc, char *argv[]){
 	address.sin_port = htons(PORT);
 
 	if(bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0){
-		perror("bind failed");
+		perror("bind");
 		exit(EXIT_FAILURE);
 	}
 
@@ -268,7 +268,7 @@ int main(int argc, char *argv[]){
 		pid = fork();
 		if(pid == 0){
 			server_srv(new_socket);
-			printf("\n### Klient odpojeny ###\n");
+			printf("### Klient odpojeny ###\n\n");
 		}else
 			close(new_socket);
 	}

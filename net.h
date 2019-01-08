@@ -1,8 +1,7 @@
 #ifndef _NET_H
 #define _NET_H
 
-int net_connect(int *, int ,char *);
-void net_save(void *);
-void net_load(void *);
+void net_save(world_t *);
+void net_load(world_t *);
 
 #endif

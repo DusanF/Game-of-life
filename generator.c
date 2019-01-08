@@ -44,9 +44,7 @@ void* generator(void *gen){
 }
 
 
-void gen_init(void *gen){
-	gen_struct_t (*genstr) = gen;
-
+void gen_init(gen_struct_t *genstr){
 	for(unsigned i=0; i<GEN_BUFF_SIZE; i++)
 		genstr->cells[i] = NULL;
 
@@ -59,10 +57,7 @@ void gen_init(void *gen){
 }
 
 
-void gen_clear(void *gen){
-	gen_struct_t (*genstr) = gen;
-
-
+void gen_clear(gen_struct_t *genstr){
 	genstr->run_gen = 0;									//Ukoncenie generovania
 	pthread_cond_signal(&(genstr->doGenerate));				//Ak generator caka na signal, treba ho uvolnit aby mohol skoncit
 	pthread_join(genstr->thread, NULL);
@@ -76,10 +71,7 @@ void gen_clear(void *gen){
 }
 
 
-void gen_loadWorld(void *gen, void *wrld){
-	gen_struct_t (*genstr) = gen;
-	world_t (*world) = wrld;
-
+void gen_loadWorld(gen_struct_t *genstr, world_t *world){
 	pthread_mutex_lock(&(genstr->mutex));
 	for(unsigned i=0; i<GEN_BUFF_SIZE; i++)
 		genstr->cells[i] = realloc(genstr->cells[i], world->w * world->h);
@@ -95,10 +87,7 @@ void gen_loadWorld(void *gen, void *wrld){
 }
 
 
-void gen_read(void *gen, void *wrld){
-	gen_struct_t (*genstr) = gen;
-	world_t (*world) = wrld;
-
+void gen_read(gen_struct_t *genstr, world_t *world){
 	pthread_mutex_lock(&(genstr->mutex));
 
 	if(genstr->gen_pos == genstr->read_pos){

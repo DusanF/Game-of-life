@@ -23,54 +23,49 @@ const unsigned dly_tab[] = {								//dostupne rychlosti simulacie (dlzka jedneh
 	5000
 };
 
-void game_fillRand(void *w){								//Nahode naplnenie sveta
-	world_t (*world) = w;
-
+void game_fillRand(world_t *world){								//Nahode naplnenie sveta
 	for(int i=0; i<(world->w * world->h); i++)
 		*(world->cells+i) = rand() < RAND_MAX / 5 ? 1 : 0;	//20% sanca zivota v novej bunke (1/5)
 }
 
-void game_fillMan(void *w){									//Rucne naplnenie sveta
-	world_t (*world) = w;
-
+void game_fillMan(world_t *world){									//Rucne naplnenie sveta
 	for(int i=0; i<(world->w * world->h); i++)
 		*(world->cells+i) = 0;								//vytvor prazdny svet, potom spusti editor
 	gui_drawWorld(world);
 	gui_edit(world);
 }
 
-void game_save(void *w){									//Ukladanie aktualneho stavu do suboru / na server
+void game_save(world_t *world){									//Ukladanie aktualneho stavu do suboru / na server
 	gui_pause();
 
 	char vstup[5];
 	system("clear");
 	printf("Ulozit Lokalne alebo na Server? [L/s]: ");
 	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's')){
-		net_save(w);
+		net_save(world);
 		sleep(2);
 	}
 	else
-		file_save(w);
+		file_save(world);
 	gui_resume();
 }
 
-void game_load(void *w){									//Nacitanie sveta zo suboru / zo servera
+void game_load(world_t *world){									//Nacitanie sveta zo suboru / zo servera
 	gui_pause();
 
 	char vstup[5];
 	system("clear");
 	printf("Nacitat z Lokalneho suboru alebo zo Servera? [L/s]: ");
 	if(fgets(vstup, 5, stdin) != NULL && (vstup[0] == 'S' || vstup[0] == 's'))
-		net_load(w);
+		net_load(world);
 	else
-		file_load(w);
+		file_load(world);
 
 	sleep(2);
 	gui_resume();
 }
 
-void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesnice a zobrazovanie stavu
-	world_t (*world) = w;
+void game_runner(world_t *world){									//Hlavna funkcia, zabezpecuje obsluhu klavesnice a zobrazovanie stavu
 	hist_t history;
 
 	gen_struct_t genstr;

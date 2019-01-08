@@ -53,9 +53,9 @@ int main(int argc, char *argv[]){
 			game_fillRand(&world);
 	}
 
-	gui_drawWorld(&world);					//Vygenerovany svet sa vykresli
+	gui_drawWorld(&world);									//Vygenerovany svet sa vykresli
 
-	game_runner(&world);					//Spustenie simulacie
+	game_runner(&world);									//Spustenie simulacie
 
 	gui_end();
 	system("clear");
