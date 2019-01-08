@@ -27,14 +27,6 @@ enum {
 };
 
 
-void printArray(char* name, void* array, unsigned size){
-	char (*arr) = array;
-	printf("\n");
-	for(unsigned i=0; i<size; i++)
-		printf("%s[%d]: 0x%02X = %3d = \'%c\'\n", name, i, *(arr+i), *(arr+i), *(arr+i));
-}
-
-
 char saveFile(char* filename, void* dat, uint16_t len){
 	char (*size) = dat;
 	uint16_t (*data) = dat+2;
@@ -234,6 +226,11 @@ int main(int argc, char *argv[]){
 	struct sockaddr_in address;
 	int opt = 1;
 	int addrlen = sizeof(address);
+
+
+	struct stat file_st = {0};								//ak priecinok neexistuje, vytvor ho
+	if (stat("saves", &file_st) == -1)
+		mkdir("saves", 0700);
 
 	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
 		perror("socket failed");
