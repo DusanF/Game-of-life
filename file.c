@@ -3,7 +3,7 @@
 #include <string.h>
 #include "defs.h"
 
-void file_save(world_t *world){
+void file_save(world_t *world){								//ulozenie do suboru
 	char *filename;
 	FILE *file;
 	char aktual=0;
@@ -14,7 +14,7 @@ void file_save(world_t *world){
     while(fgets(filename, FILENAME_MAX-4, stdin) == NULL);
     *(filename+strcspn(filename, "\n")) = 0;
     
-    if(strstr(filename, ".gol") == NULL)		//prida priponu, ak uz nieje zadana
+    if(strstr(filename, ".gol") == NULL)					//prida priponu, ak uz nieje zadana
 		strcat(filename, ".gol");
 
 	file = fopen(filename, "w");
@@ -41,7 +41,7 @@ void file_save(world_t *world){
 	fclose(file);
 }
 
-void file_load(world_t *world){
+void file_load(world_t *world){								//nacitanie zo suboru
 	char *filename;
 	FILE *file;
 	char cell_stat=0;

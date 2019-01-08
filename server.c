@@ -9,17 +9,8 @@
 #include <stdint.h>
 #include "defs.h"
 
-const char* msg_type[] = {
-	"Save",
-	"Load",
-	"User",
-	"Filename",
-	"Stop",
-	"Rewrite"
-};
 
-
-enum {
+enum {														//flagy stavu pripojeneho klienta
 	STAT_LOGIN_OK = 1,
 	STAT_FILE_OK = 2,
 	STAT_REWRITE = 4,
@@ -27,7 +18,7 @@ enum {
 };
 
 
-char saveFile(char* filename, void* dat, uint16_t len){
+char saveFile(char* filename, void* dat, uint16_t len){		//ulozenie do suboru
 	char (*size) = dat;
 	uint16_t (*data) = dat+2;
 
@@ -39,8 +30,8 @@ char saveFile(char* filename, void* dat, uint16_t len){
 	if(file == 0)
 		return SERVER_RESP_ERR;
 
-	fprintf(file, "%u\n%u\n", *size, *(size+1));
-	for(unsigned i = 0; i < len/2; i++){
+	fprintf(file, "%u\n%u\n", *size, *(size+1));			//rozmery
+	for(unsigned i = 0; i < len/2; i++){					//svet
 		fprintf(file, "%u\n", *(data+i));
 	}
 	fclose(file);
@@ -49,7 +40,7 @@ char saveFile(char* filename, void* dat, uint16_t len){
 }
 
 
-char *loadFile(char *filename, unsigned *size){
+char *loadFile(char *filename, unsigned *size){				//nacianie zo suboru
 	FILE *file;
 
 	printf("Nacitavam z \"%s\"\n", filename);
@@ -62,14 +53,14 @@ char *loadFile(char *filename, unsigned *size){
 	unsigned readVal;
 	char *buffer = malloc(4);
 
-	fscanf(file, "%u", &readVal);
+	fscanf(file, "%u", &readVal);							//rozmery
 	*(buffer + 2) = readVal;
 	fscanf(file, "%u", &readVal);
 	*(buffer + 3) = readVal;
 
 	unsigned i=4;
 
-	while(fscanf(file, "%u", &readVal) != EOF){
+	while(fscanf(file, "%u", &readVal) != EOF){				//svet
 		buffer = realloc(buffer, i+2);
 		*(buffer + i++) = readVal;
 		*(buffer + i++) = readVal >> 8;
@@ -77,7 +68,7 @@ char *loadFile(char *filename, unsigned *size){
 
 	fclose(file);
 
-	*size = i;
+	*size = i;												//potrebna velkost buffra
 	*buffer = i-2;
 	*(buffer+1) = (i-2) >> 8;
 
@@ -85,7 +76,7 @@ char *loadFile(char *filename, unsigned *size){
 }
 
 
-void server_srv(int socket){
+void server_srv(int socket){								//obsluha klienta
 	char cmd;
 	uint16_t len;
 	char *username;
@@ -101,7 +92,7 @@ void server_srv(int socket){
 		//printf("\n# CMD: %s\n", msg_type[cmd]);
 
 		switch(cmd){
-			case SERVER_CMD_USER:
+			case SERVER_CMD_USER:							//prihlasenie
 				read(socket, &len, 2);
 				username = malloc(len + 1);
 				read(socket, username, len);
@@ -123,9 +114,9 @@ void server_srv(int socket){
 				break;
 
 
-			case SERVER_CMD_FILENAME:
+			case SERVER_CMD_FILENAME:						//nazov suboru
 				read(socket, &len, 2);
-				if(!(status & STAT_LOGIN_OK)){						//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
+				if(!(status & STAT_LOGIN_OK)){				//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
 					filename = malloc(len);
 					read(socket, filename, len);
 					free(filename);
@@ -135,7 +126,7 @@ void server_srv(int socket){
 				read(socket, buffer, len);
 				*(buffer + len) = 0;
 
-				filename = malloc(12 + len + strlen(username));
+				filename = malloc(12 + len + strlen(username));	// ./saves/pouzivatel/subor.gol
 				strcpy(filename, "saves/");
 				strcat(filename, username);
 				strcat(filename, "/");
@@ -157,7 +148,7 @@ void server_srv(int socket){
 				break;
 
 
-			case SERVER_CMD_REWRITE:
+			case SERVER_CMD_REWRITE:						//potvrdenie prepisu suboru
 				if(status & STAT_FILE_OK){
 					status |= STAT_FILE_WRITABLE;
 					printf("subor bude prepisany\n");
@@ -167,13 +158,13 @@ void server_srv(int socket){
 				break;
 
 
-			case SERVER_CMD_SAVE:
+			case SERVER_CMD_SAVE:							//ukladanie
 				read(socket, &len, 2);
 				buffer = malloc(2 + len);
 				read(socket, buffer, 2+len);
 
 				if(!(status & STAT_FILE_WRITABLE)){
-					printf("Subor existuje, zahadzujem!\n");
+					printf("Subor existuje, zahadzujem!\n");	//nebolo povolene prepisovanie
 					free(buffer);
 					write(socket, &response, 1);
 					break;
@@ -188,7 +179,7 @@ void server_srv(int socket){
 				break;
 
 
-			case SERVER_CMD_LOAD:
+			case SERVER_CMD_LOAD:							//nacitavanie
 				if(status != (STAT_LOGIN_OK | STAT_FILE_OK)){
 					printf("Chyba nacitavania zo suboru\n");
 					write(socket, &response, 1);
@@ -209,7 +200,7 @@ void server_srv(int socket){
 				}
 				break;
 
-			case SERVER_CMD_STOP:
+			case SERVER_CMD_STOP:							//predcasne ukoncenie prace
 				free(filename);
 				free(username);
 				free(buffer);
@@ -232,7 +223,8 @@ int main(int argc, char *argv[]){
 	if (stat("saves", &file_st) == -1)
 		mkdir("saves", 0700);
 
-	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){
+
+	if((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0){		//vytvorenie socketu
 		perror("socket");
 		exit(EXIT_FAILURE);
 	}
@@ -258,7 +250,7 @@ int main(int argc, char *argv[]){
 
 	int pid;
 	while(1){
-		new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t*)&addrlen);
+		new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t*)&addrlen);	//novy klient pripojeny
 		if(new_socket < 0){
 			perror("accept");
 			exit(EXIT_FAILURE);
@@ -266,12 +258,11 @@ int main(int argc, char *argv[]){
 		printf("\n### Klient pripojeny ###\n");
 
 		pid = fork();
-		if(pid == 0){
+		if(pid == 0){										//novy proces - obsluha klienta
 			server_srv(new_socket);
 			printf("### Klient odpojeny ###\n\n");
 		}else
-			close(new_socket);
+			close(new_socket);								//rodicovsky proces - nerob nic
 	}
-
 	return 0;
 }

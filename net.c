@@ -10,7 +10,7 @@
 #include "defs.h"
 
 
-int net_connect(int *sck, int port, char *adr) {
+int net_connect(int *sck, int port, char *adr) {			//pripojenie ku serveru
 	struct sockaddr_in serv_addr;
 
 	if((*sck = socket(AF_INET, SOCK_STREAM, 0)) < 0){
@@ -34,13 +34,13 @@ int net_connect(int *sck, int port, char *adr) {
 	return 1;
 }
 
-void net_close(int socket){
+void net_close(int socket){									//odosle pokyn na odpojenie klienta a zavrie soket
 	char cmd = SERVER_CMD_STOP;
 	write(socket, &cmd, 1);
 	close(socket);
 }
 
-int net_rewrite(int socket){
+int net_rewrite(int socket){								//prepisanie uz existujuceho suboru
 	char buff = SERVER_CMD_REWRITE;
 	write(socket, &buff, 1);
 
@@ -48,7 +48,7 @@ int net_rewrite(int socket){
 	return buff;
 }
 
-int net_login(int socket, char *username){
+int net_login(int socket, char *username){					//prihlasenie
 	char *buffer;
 
 	buffer = malloc(3+strlen(username));
@@ -69,7 +69,7 @@ int net_login(int socket, char *username){
 	return response;
 }
 
-int net_setFileName(int socket, char* filename){
+int net_setFileName(int socket, char* filename){			//nastavenie nazvu vzdialeneho suboru
 	char *buffer;
 	buffer = malloc(3 + strlen(filename));
 
@@ -87,7 +87,7 @@ int net_setFileName(int socket, char* filename){
 	return response;
 }
 
-int net_sendWorld(int socket, world_t *world){
+int net_sendWorld(int socket, world_t *world){				//odoslanie sveta na server
 	char* buffer = malloc(7);								//minimalna mozna velkost: 1B-CMD + 1B-sirka + 1B-vyska + 2B-celkova dlzka + 2B-pocet mrtvych buniek
 
 	*buffer = SERVER_CMD_SAVE;
@@ -124,7 +124,7 @@ int net_sendWorld(int socket, world_t *world){
 	return response;
 }
 
-void net_readWorld(world_t *world, unsigned char *buffer, unsigned size){
+void net_readWorld(world_t *world, unsigned char *buffer, unsigned size){	//nacitanie sveta a jeho rozmerov
 	world->w = (unsigned char) *buffer;
 	world->h = (unsigned char) *(buffer+1);
 
@@ -155,7 +155,7 @@ void net_save(void *w){
 		strcpy(addr, "127.0.0.1");
 
 	if(net_connect(&socket, PORT, addr) != 1){
-		sleep(2);
+		sleep(2);											//pocka pri zobrazovani chyby
 		return;
 	}
 	printf("Pripojenie uspesne\n");
@@ -187,7 +187,7 @@ void net_save(void *w){
 			printf("Vzdialeny subor vytvoreny\n");
 			break;
 		case SERVER_RESP_FILE_EXISTS:
-			printf("Subor uz existuje!\nPrepisat [y/N]: ");
+			printf("Subor uz existuje!\nPrepisat [y/N]: ");	//subor s takym nazvom uz existuje
 			if(fgets(vstup, 3, stdin) == NULL){
 				printf("Nebude sa prepisovat!\n");
 				net_close(socket);
@@ -215,7 +215,7 @@ void net_save(void *w){
 	}
 
 
-	ret = net_sendWorld(socket, w);							//odoslanie aktualneho stavu
+	ret = net_sendWorld(socket, w);							//vsetko OK, moze sa odoslat svet
 	if(ret = SERVER_RESP_OK)
 		printf("Ukladanie uspesne\n");
 	else

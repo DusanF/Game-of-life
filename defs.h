@@ -34,7 +34,7 @@ typedef struct{												//na uchovavanie niekolko poslednych generacii
 	unsigned short hist_avail;								//pocet dostupnych zaznamov
 } hist_t;
 
-typedef struct{
+typedef struct{												//pouzivane pri generovani sveta
 	volatile unsigned width;
 	volatile unsigned height;
 	char *cells[GEN_BUFF_SIZE];
