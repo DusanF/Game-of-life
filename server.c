@@ -13,7 +13,9 @@ const char* msg_type[] = {
 	"Save",
 	"Load",
 	"User",
-	"Filename"
+	"Filename",
+	"Stop",
+	"Rewrite"
 };
 
 
@@ -21,7 +23,7 @@ enum {
 	STAT_LOGIN_OK = 1,
 	STAT_FILE_OK = 2,
 	STAT_REWRITE = 4,
-	STAT_FILE_UNLOCKED = 8
+	STAT_FILE_WRITABLE = 8
 };
 
 
@@ -31,7 +33,6 @@ void printArray(char* name, void* array, unsigned size){
 	for(unsigned i=0; i<size; i++)
 		printf("%s[%d]: 0x%02X = %3d = \'%c\'\n", name, i, *(arr+i), *(arr+i), *(arr+i));
 }
-
 
 
 char saveFile(char* filename, void* dat, uint16_t len){
@@ -54,6 +55,7 @@ char saveFile(char* filename, void* dat, uint16_t len){
 
 	return SERVER_RESP_OK;
 }
+
 
 char *loadFile(char *filename, unsigned *size){
 	FILE *file;
@@ -90,8 +92,144 @@ char *loadFile(char *filename, unsigned *size){
 	return buffer;
 }
 
-int main(int argc, char *argv[])
-{
+
+void server_srv(int socket){
+	char cmd;
+	uint16_t len;
+	char *username;
+	char *filename;
+	char *buffer;
+	char response;
+	char status = 0;
+	struct stat file_st = {0};
+
+	while(1){
+		response = SERVER_RESP_ERR;
+		read(socket, &cmd, 1);
+		printf("\nCMD: %s\n", msg_type[cmd]);
+
+		switch(cmd){
+			case SERVER_CMD_USER:
+				read(socket, &len, 2);
+				username = malloc(len + 1);
+				read(socket, username, len);
+				*(username + len) = 0;
+				printf("Pouzivatel: %s\n", username);
+
+				char *dirname = malloc(7 + strlen(username));
+				strcpy(dirname, "saves/");
+				strcat(dirname, username);
+				if (stat(dirname, &file_st) == -1) {
+					mkdir(dirname, 0700);
+					response = SERVER_RESP_NEW;
+				}else
+					response = SERVER_RESP_OK;
+				free(dirname);
+				status |= STAT_LOGIN_OK;
+
+				write(socket, &response, 1);
+				break;
+
+
+			case SERVER_CMD_FILENAME:
+				read(socket, &len, 2);
+				if(!(status & STAT_LOGIN_OK)){						//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
+					filename = malloc(len);
+					read(socket, filename, len);
+					free(filename);
+					break;
+				}
+				buffer = malloc(1+len);
+				read(socket, buffer, len);
+				*(buffer + len) = 0;
+
+				filename = malloc(12 + len + strlen(username));
+				strcpy(filename, "saves/");
+				strcat(filename, username);
+				strcat(filename, "/");
+				strcat(filename, buffer);
+				strcat(filename, ".gol");
+				status |= STAT_FILE_OK;
+
+				free(buffer);
+
+				printf("Subor: %s\n", filename);
+
+				if (stat(filename, &file_st) == -1){
+					response = SERVER_RESP_FILE_NONEXISTS;
+					status |= STAT_FILE_WRITABLE;
+				}else
+					response = SERVER_RESP_FILE_EXISTS;
+
+				write(socket, &response, 1);
+				break;
+
+
+			case SERVER_CMD_REWRITE:
+				if(status & STAT_FILE_OK){
+					status |= STAT_FILE_WRITABLE;
+					printf("subor bude prepisany\n");
+				}
+				response = SERVER_RESP_OK;
+				write(socket, &response, 1);
+				break;
+
+
+			case SERVER_CMD_SAVE:
+				read(socket, &len, 2);
+				buffer = malloc(2 + len);
+				read(socket, buffer, 2+len);
+
+				if(!(status & STAT_FILE_WRITABLE)){
+					printf("Subor existuje, zahadzujem!\n");
+					free(buffer);
+					write(socket, &response, 1);
+					break;
+				}
+				response = saveFile(filename, buffer, len);
+				free(filename);
+				free(username);
+				free(buffer);
+				write(socket, &response, 1);
+				close(socket);
+				return;
+				break;
+
+
+			case SERVER_CMD_LOAD:
+				if(status != (STAT_LOGIN_OK | STAT_FILE_OK)){
+					printf("Chyba nacitavania zo suboru\n");
+					write(socket, &response, 1);
+				}else{
+					response = SERVER_RESP_OK;
+					write(socket, &response, 1);
+
+					unsigned size;
+					buffer = loadFile(filename, &size);
+
+					write(socket, buffer, size);
+
+					free(filename);
+					free(username);
+					free(buffer);
+					close(socket);
+					return;
+				}
+				break;
+
+			case SERVER_CMD_STOP:
+				free(filename);
+				free(username);
+				free(buffer);
+				close(socket);
+				return;
+				break;
+		}
+	}
+}
+
+
+int main(int argc, char *argv[]){
 	int server_fd, new_socket, valread;
 	struct sockaddr_in address;
 	int opt = 1;
@@ -113,137 +251,30 @@ int main(int argc, char *argv[])
 		perror("bind failed");
 		exit(EXIT_FAILURE);
 	}
+
 	if(listen(server_fd, 3) < 0){
 		perror("listen");
 		exit(EXIT_FAILURE);
 	}
-	printf("Cakam na pripojenie\n");
-	if((new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t*)&addrlen)) < 0){
-		perror("accept");
-		exit(EXIT_FAILURE);
-	}
-	printf("Pripojene\n");
 
+	printf("### Server je spusteny ###\n");
 
-	char cmd;
-	uint16_t len;
-	char *username;
-	char *filename;
-	char *buffer;
-	char response;
-	char status = 0;
-	struct stat st = {0};
-
+	int pid;
 	while(1){
-		response = SERVER_RESP_ERR;
-		read(new_socket, &cmd, 1);
-		printf("\n%s\n", msg_type[cmd]);
-
-		switch(cmd){
-			case SERVER_CMD_USER:
-				read(new_socket, &len, 2);
-				username = malloc(len + 1);
-				read(new_socket, username, len);
-				*(username + len) = 0;
-				printf("Pouzivatel: %s\n", username);
-
-				char *dirname = malloc(7 + strlen(username));
-				strcpy(dirname, "saves/");
-				strcat(dirname, username);
-				if (stat(dirname, &st) == -1) {
-					mkdir(dirname, 0700);
-					response = SERVER_RESP_NEW;
-				}else
-					response = SERVER_RESP_OK;
-				free(dirname);
-				status |= STAT_LOGIN_OK;
-
-				write(new_socket, &response, 1);
-				break;
-
-
-			case SERVER_CMD_FILENAME:
-				read(new_socket, &len, 2);
-				if(!(status & STAT_LOGIN_OK)){						//ak uzivatel nieje prihlaseny, len zahod prijaty nazov suboru
-					filename = malloc(len);
-					read(new_socket, filename, len);
-					free(filename);
-					break;
-				}
-				buffer = malloc(1+len);
-				read(new_socket, buffer, len);
-				*(buffer + len) = 0;
-
-				filename = malloc(12 + len + strlen(username));
-				strcpy(filename, "saves/");
-				strcat(filename, username);
-				strcat(filename, "/");
-				strcat(filename, buffer);
-				strcat(filename, ".gol");
-				status |= STAT_FILE_OK;
-
-				free(buffer);
-
-				printf("Subor: %s\n", filename);
-
-				if (stat(filename, &st) == -1){
-					response = SERVER_RESP_FILE_NONEXISTS;
-					status |= STAT_FILE_UNLOCKED;
-				}else
-					response = SERVER_RESP_FILE_EXISTS;
-
-				write(new_socket, &response, 1);
-				break;
-
-
-			case SERVER_CMD_SAVE:
-				read(new_socket, &len, 2);
-				buffer = malloc(2 + len);
-				unsigned act_read, buffpos=0;
-
-				do{
-					act_read = read(new_socket, buffer+buffpos, (2+len) - buffpos);
-					printf("precitane: %u\n", act_read);
-					buffpos += act_read;
-				} while(buffpos < (2 + len));
-
-				if(!(status & STAT_FILE_UNLOCKED)){
-					printf("Subor neodomknuty, zahadzujem!\n");
-					free(buffer);
-					write(new_socket, &response, 1);
-					break;
-				}
-				printf("ukladam\n");
-				response = saveFile(filename, buffer, len);
-				free(filename);
-				free(username);
-				free(buffer);
-				write(new_socket, &response, 1);
-				close(new_socket);
-				return 0;
-				break;
-
-			case SERVER_CMD_LOAD:
-				if(status != (STAT_LOGIN_OK | STAT_FILE_OK)){
-					printf("Chyba nacitavania zo suboru\n");
-					write(new_socket, &response, 1);
-				}else{
-					response = SERVER_RESP_OK;
-					write(new_socket, &response, 1);
-
-					unsigned size;
-					buffer = loadFile(filename, &size);
-
-					write(new_socket, buffer, size);
-
-					free(filename);
-					free(username);
-					free(buffer);
-					close(new_socket);
-					return 0;
-				}
-				break;
+		new_socket = accept(server_fd, (struct sockaddr *) &address, (socklen_t*)&addrlen);
+		if(new_socket < 0){
+			perror("accept");
+			exit(EXIT_FAILURE);
 		}
+		printf("\n### Klient pripojeny ###\n");
+
+		pid = fork();
+		if(pid == 0){
+			server_srv(new_socket);
+			printf("\n### Klient odpojeny ###\n");
+		}else
+			close(new_socket);
 	}
+
 	return 0;
 }

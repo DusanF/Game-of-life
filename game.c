@@ -38,32 +38,6 @@ void game_fillMan(void *w){									//Rucne naplnenie sveta
 	gui_drawWorld(world);
 	gui_edit(world);
 }
-/*
-void game_evolve(void *w){									//Vypocet novej generacie
-	world_t (*world) = w;
-	char* new;
-
-	int i=0;
-	char old[world->h][world->w];
-
-	for(int y = 0; y < world->h; y++)
-		for(int x = 0; x < world->w; x++)
-			old[y][x] = *(world->cells + i++);
-
-
-	for(int y = 0; y < world->h; y++)
-		for(int x = 0; x < world->w; x++){
-			int n = 0;
-			for (int y1 = y - 1; y1 <= y + 1; y1++)
-				for (int x1 = x - 1; x1 <= x + 1; x1++)
-					if (old[(y1 + world->h) % world->h][(x1 + world->w) % world->w])
-						n++;
-
-			if (old[y][x]) n--;
-			*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
-		}
-	world->generation++;
-}*/
 
 void game_save(void *w){									//Ukladanie aktualneho stavu do suboru / na server
 	gui_pause();
@@ -132,6 +106,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 					world->state = GAME_STATE_PAUSE;
 					game_load(world);
 					gui_clr();
+					world->generation = 0;
 					gui_drawWorld(world);
 					gui_drawStat(world);
 					gen_loadWorld(&genstr, world);
@@ -144,6 +119,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 
 				case 'E':									//Spustenie editora
 					gui_edit(world);
+					world->generation = 0;
 					gen_loadWorld(&genstr, world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);

@@ -34,6 +34,20 @@ int net_connect(int *sck, int port, char *adr) {
 	return 1;
 	}
 
+void net_close(int socket){
+	char cmd = SERVER_CMD_STOP;
+	write(socket, &cmd, 1);
+	close(socket);
+}
+
+int net_rewrite(int socket){
+	char buff = SERVER_CMD_REWRITE;
+	write(socket, &buff, 1);
+
+	read(socket, &buff, 1);
+	return buff;
+}
+
 int net_login(int socket, char *username){
 	char *buffer;
 
@@ -165,16 +179,36 @@ void net_save(void *w){
 
 	ret = net_setFileName(socket, filename);
 	free(filename);
+	char vstup[3];
+
 	switch(ret){
 		case SERVER_RESP_FILE_NONEXISTS:
 			printf("Vzdialeny subor vytvoreny\n");
 			break;
 		case SERVER_RESP_FILE_EXISTS:
-			printf("Subor uz existuje!\n");
+			printf("Subor uz existuje!\nPrepisat [y/N]: ");
+			if(fgets(vstup, 3, stdin) == NULL){
+				printf("Nebude sa prepisovat!\n");
+				net_close(socket);
+				return;
+			}else
+				if (vstup[0] == 'y' || vstup[0] == 'Y'){
+					if(net_rewrite(socket) == SERVER_RESP_OK){
+						printf("Prepisujem\n");
+					}else{
+						printf("Neda sa prepisat!\n");
+						net_close(socket);
+						return;
+					}
+				}else{
+					printf("Nebude sa prepisovat!\n");
+					net_close(socket);
+					return;
+				}
 			break;
 		default:
 			printf("Neznama chyba!\n");
-			close(socket);
+			net_close(socket);
 			return;
 			break;
 	}

@@ -24,7 +24,7 @@ enum {														//odpovede od servera
 };
 
 enum {														//mozne poziadavky na server
-	SERVER_CMD_SAVE, SERVER_CMD_LOAD, SERVER_CMD_USER, SERVER_CMD_FILENAME
+	SERVER_CMD_SAVE, SERVER_CMD_LOAD, SERVER_CMD_USER, SERVER_CMD_FILENAME, SERVER_CMD_STOP, SERVER_CMD_REWRITE
 };
 
 
