@@ -8,6 +8,8 @@
 #include "net.h"
 #include "file.h"
 #include "history.h"
+#include "generator.h"
+
 
 const unsigned dly_tab[] = {								//dostupne rychlosti simulacie (dlzka jedneho kroku v us)
 	1000000,
@@ -36,7 +38,7 @@ void game_fillMan(void *w){									//Rucne naplnenie sveta
 	gui_drawWorld(world);
 	gui_edit(world);
 }
-
+/*
 void game_evolve(void *w){									//Vypocet novej generacie
 	world_t (*world) = w;
 	char* new;
@@ -61,7 +63,7 @@ void game_evolve(void *w){									//Vypocet novej generacie
 			*(world->cells + x + (y*world->w)) = (n == 3 || (n == 2 && old[y][x]));
 		}
 	world->generation++;
-}
+}*/
 
 void game_save(void *w){									//Ukladanie aktualneho stavu do suboru / na server
 	gui_pause();
@@ -97,6 +99,8 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 	world_t (*world) = w;
 	hist_t history;
 
+	gen_struct_t genstr;
+
 	unsigned short rychlost = 4;
 	int ch=0;
 
@@ -104,6 +108,8 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 	hist_init(&history);
 
 	gui_drawStat(world);
+	gen_init(&genstr);
+	gen_loadWorld(&genstr, world);
 
 	while(toupper(ch) != 'Q') {
 		ch = getch();
@@ -128,6 +134,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 					gui_clr();
 					gui_drawWorld(world);
 					gui_drawStat(world);
+					gen_loadWorld(&genstr, world);
 					hist_clear(&history);
 					break;
 
@@ -137,6 +144,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 
 				case 'E':									//Spustenie editora
 					gui_edit(world);
+					gen_loadWorld(&genstr, world);
 					world->state = GAME_STATE_PAUSE;
 					gui_drawStat(world);
 					break;
@@ -177,7 +185,8 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 		}
 		if(world->state == GAME_STATE_RUN || world->state == GAME_STATE_STEP) {	//Nova generacia iba ak je simulacia spustena / jeden krok
 			hist_push(&history, world);						//Aktualna generacia sa ulozi do historie, az potom sa vygeneruje nova
-			game_evolve(world);
+			gen_read(&genstr, world);
+
 			gui_drawWorld(world);
 			gui_drawStat(world);
 		}
@@ -187,6 +196,7 @@ void game_runner(void *w){									//Hlavna funkcia, zabezpecuje obsluhu klavesn
 		}else
 			usleep(dly_tab[rychlost]);						//Spomalenie zobrazovania podla zvolenej rychlosti
 	}
-	hist_clear(&history);									//Po skonceni je potrebne vycistit historiu (dealokovat)
+	hist_clear(&history);									//Upratanie po skonceni
+	gen_clear(&genstr);
 
 }

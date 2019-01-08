@@ -37,9 +37,10 @@ typedef struct{												//na uchovavanie niekolko poslednych generacii
 typedef struct{
 	volatile unsigned width;
 	volatile unsigned height;
-	volatile char* cells[GEN_BUFF_SIZE];
+	char *cells[GEN_BUFF_SIZE];
 	volatile unsigned short gen_pos;
 	volatile unsigned short read_pos;
+	volatile char run_gen;
 	pthread_t thread;
 	pthread_mutex_t mutex;
 	pthread_cond_t doRead;
