@@ -7,9 +7,7 @@ unsigned hist_push(hist_t *history, world_t *world){		//Vlozenie stavu do histor
 	history->hist_pos++;
 	history->hist_pos = history->hist_pos % HIST_SIZE;
 
-	if(history->cells[0] == NULL)
-		for(unsigned i=0; i< HIST_SIZE; i++)
-			history->cells[i] = malloc(world->w * world->h);
+    history->cells[history->hist_pos] = realloc(history->cells[history->hist_pos], world->w*world->h);
 
 	memcpy(history->cells[history->hist_pos], world->cells, world->w*world->h);
 
